@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/go-git/go-git/v5"
 	. "github.com/go-git/go-git/v5/_examples"
@@ -51,6 +52,12 @@ func isValidUrl(toTest string) bool {
 	return true
 }
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
 func main() {
 	CheckArgs("<path>")
 	path := os.Args[1]
@@ -71,5 +78,13 @@ func main() {
 
 	// Length of the HEAD history
 	// Info("git rev-list HEAD --count")
-	fmt.Println(getLineageID(repo))
+	lineageID := getLineageID(repo)
+
+	d1 := []byte(lineageID)
+
+	pathparts := strings.Split(path, "/")
+	reponame := pathparts[len(pathparts)-1]
+
+	err = os.WriteFile("./"+reponame+".txt", d1, 0644)
+	check(err)
 }
