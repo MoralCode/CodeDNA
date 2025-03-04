@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 
@@ -54,11 +55,21 @@ func main() {
 	CheckArgs("<path>")
 	path := os.Args[1]
 
-	// We instantiate a new repository targeting the given path (the .git folder)
-	r, err := git.PlainOpen(path)
+	var repo *git.Repository
+	_, err := os.Stat(path)
+	if err != nil {
+
+		// Checking if the given file exists or not
+		// Using IsNotExist() function
+		if os.IsNotExist(err) {
+			log.Fatal("File not Found !!")
+		}
+	}
+	// We instantiate a new repository object from the given path (the .git folder)
+	repo, err = git.PlainOpen(path)
 	CheckIfError(err)
 
 	// Length of the HEAD history
 	// Info("git rev-list HEAD --count")
-	fmt.Println(getLineageID(r))
+	fmt.Println(getLineageID(repo))
 }
