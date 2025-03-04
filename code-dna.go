@@ -21,7 +21,16 @@ func Reverse(s string) string {
 	return string(runes)
 }
 
-func getLineageID(repo *git.Repository) string {
+func getLineageIDFromHashes(commit_hashes []string) string {
+	lineageID := ""
+
+	for _, element := range commit_hashes {
+		lineageID += string(element[0])
+	}
+	return lineageID
+}
+
+func getLineageIDFromRepo(repo *git.Repository) string {
 	// ... retrieving the HEAD reference
 	ref, err := repo.Head()
 	CheckIfError(err)
@@ -33,14 +42,15 @@ func getLineageID(repo *git.Repository) string {
 	// , Since: &since, Until: &until
 	CheckIfError(err)
 
-	lineageID := ""
+	var commit_hashes []string
 
-	// ... just iterates over the commits, printing it
 	err = cIter.ForEach(func(c *object.Commit) error {
-		// fmt.Printf("%v (%T)", string(c.Hash.String()[0]), string(c.Hash.String()[0]))
-		lineageID += string(c.Hash.String()[0])
+		commit_hashes = append(commit_hashes, string(c.Hash.String()))
 		return nil
 	})
+
+	lineageID := getLineageIDFromHashes(commit_hashes)
+
 	CheckIfError(err)
 	return Reverse(lineageID)
 }
@@ -98,7 +108,7 @@ func lineageIDForPath(path string) string {
 
 		// Length of the HEAD history
 		// Info("git rev-list HEAD --count")
-		lineageID := getLineageID(repo)
+		lineageID := getLineageIDFromRepo(repo)
 
 		d1 := []byte(lineageID)
 
