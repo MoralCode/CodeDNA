@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -69,7 +70,7 @@ func check(e error) {
 func lineageIDForPath(path string) string {
 	pathparts := strings.Split(path, "/")
 	reponame := pathparts[len(pathparts)-1]
-	cacheFilename := "./" + reponame + ".txt"
+	cacheFilename := "./" + reponame
 
 	var repo *git.Repository
 	inputfile, err := os.Stat(path)
@@ -147,8 +148,29 @@ func getLongestPrefix(str1 string, str2 string) string {
 
 func main() {
 	CheckArgs("<path> <path2>")
-	path := os.Args[1]
+	path1 := os.Args[1]
+	path2 := os.Args[2]
 
-	lineageIDForPath(path)
+	id1 := lineageIDForPath(path1)
+	id2 := lineageIDForPath(path2)
+
+	var shortest string
+	var longest string
+	if len(id1) > len(id2) {
+		shortest = id2
+		longest = id1
+	} else {
+		shortest = id1
+		longest = id2
+	}
+
+	longest = longest[:len(shortest)]
+	// extra := longest[len(shortest):]
+
+	lp := getLongestPrefix(shortest, longest)
+
+	fmt.Println("Input 1 signature length:", len(id1))
+	fmt.Println("Input 2 signature length:", len(id2))
+	fmt.Println("Shared Prefix length:\t ", len(lp))
 
 }
