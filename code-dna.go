@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 
 	"github.com/go-git/go-git/v5"
@@ -31,6 +32,22 @@ func getLineageID(repo *git.Repository) string {
 	})
 	CheckIfError(err)
 	return lineageID
+}
+
+// isValidUrl tests a string to determine if it is a well-structured url or not.
+// from https://www.golangcode.com/how-to-check-if-a-string-is-a-url/
+func isValidUrl(toTest string) bool {
+	_, err := url.ParseRequestURI(toTest)
+	if err != nil {
+		return false
+	}
+
+	u, err := url.Parse(toTest)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+
+	return true
 }
 
 func main() {
