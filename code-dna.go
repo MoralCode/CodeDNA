@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -67,12 +66,13 @@ func check(e error) {
 	}
 }
 
-func main() {
-	CheckArgs("<path>")
-	path := os.Args[1]
+func lineageIDForPath(path string) string {
+	pathparts := strings.Split(path, "/")
+	reponame := pathparts[len(pathparts)-1]
+	cacheFilename := "./" + reponame + ".txt"
 
 	var repo *git.Repository
-	_, err := os.Stat(path)
+	inputfile, err := os.Stat(path)
 	if err != nil {
 
 		// Checking if the given file exists or not
@@ -81,19 +81,37 @@ func main() {
 			log.Fatal("File not Found !!")
 		}
 	}
-	// We instantiate a new repository object from the given path (the .git folder)
-	repo, err = git.PlainOpen(path)
-	CheckIfError(err)
+	mode := inputfile.Mode()
 
-	// Length of the HEAD history
-	// Info("git rev-list HEAD --count")
-	lineageID := getLineageID(repo)
+	if mode.IsRegular() {
+		// do file stuff
+		data, err := os.ReadFile(cacheFilename)
+		check(err)
+		return string(data)
+	} else {
+		// do directory stuff
 
-	d1 := []byte(lineageID)
+		// We instantiate a new repository object from the given path (the .git folder)
+		repo, err = git.PlainOpen(path)
+		CheckIfError(err)
 
-	pathparts := strings.Split(path, "/")
-	reponame := pathparts[len(pathparts)-1]
+		// Length of the HEAD history
+		// Info("git rev-list HEAD --count")
+		lineageID := getLineageID(repo)
 
-	err = os.WriteFile("./"+reponame+".txt", d1, 0644)
-	check(err)
+		d1 := []byte(lineageID)
+
+		err = os.WriteFile(cacheFilename, d1, 0644)
+		check(err)
+
+		return lineageID
+	}
+}
+
+func main() {
+	CheckArgs("<path> <path2>")
+	path := os.Args[1]
+
+	lineageIDForPath(path)
+
 }
