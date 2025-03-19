@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -10,6 +12,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	. "github.com/go-git/go-git/v5/_examples"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/google/go-github/v69/github"
 )
 
 // https://stackoverflow.com/a/10030772/
@@ -48,10 +51,8 @@ func getLineageIDFromRepo(repo *git.Repository) string {
 		commit_hashes = append(commit_hashes, string(c.Hash.String()))
 		return nil
 	})
-
-	lineageID := getLineageIDFromHashes(commit_hashes)
-
 	CheckIfError(err)
+	lineageID := getLineageIDFromHashes(commit_hashes)
 	return Reverse(lineageID)
 }
 
@@ -75,6 +76,60 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+
+func lineageIDFromGitHub(repourl string) string {
+	if !isValidUrl(repourl) {
+		log.Fatal(errors.New("url is not valid"))
+	}
+
+	parsedurl, err := url.Parse(repourl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := github.NewClient(nil)
+	ctx := context.Background()
+
+	pathparts := strings.Split(parsedurl.Path, "/")
+	reponame := pathparts[len(pathparts)-1]
+	owner := pathparts[len(pathparts)-2]
+
+	var allCommits []*github.RepositoryCommit
+
+	var opt = &github.CommitsListOptions{
+		SHA:         "HEAD",
+		ListOptions: github.ListOptions{PerPage: 100},
+	}
+
+	for {
+
+		commits, resp, err := client.Repositories.ListCommits(ctx, owner, reponame, opt)
+		check(err)
+		// if err != nil {
+		// 	return err
+		// }
+		allCommits = append(allCommits, commits...)
+		if resp.NextPage == 0 {
+			break
+		}
+		fmt.Println("checking page", resp.NextPage, "from Github REST API")
+		opt.Page = resp.NextPage
+	}
+
+	var commit_hashes []string
+
+	for _, commit := range allCommits {
+		commit_hashes = append(commit_hashes, *commit.SHA)
+
+	}
+
+	lineageID := getLineageIDFromHashes(commit_hashes)
+
+	// err = os.WriteFile(cacheFilename, d1, 0644)
+	// check(err)
+	return Reverse(lineageID)
 }
 
 func lineageIDForPath(path string) string {
