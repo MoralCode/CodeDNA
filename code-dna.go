@@ -78,49 +78,18 @@ func check(e error) {
 }
 
 func lineageIDForPath(path string) string {
-	pathparts := strings.Split(path, "/")
-	reponame := pathparts[len(pathparts)-1]
-	cacheFilename := "./" + reponame
-
-	if !strings.HasSuffix(cacheFilename, ".txt") {
-		cacheFilename += ".txt"
-	}
 
 	var repo *git.Repository
-	inputfile, err := os.Stat(path)
-	if err != nil {
 
-		// Checking if the given file exists or not
-		// Using IsNotExist() function
-		if os.IsNotExist(err) {
-			log.Fatal("File not Found !!")
-		}
-	}
-	mode := inputfile.Mode()
+	// We instantiate a new repository object from the given path (the .git folder)
+	repo, err := git.PlainOpen(path)
+	CheckIfError(err)
 
-	if mode.IsRegular() {
-		// do file stuff
-		data, err := os.ReadFile(cacheFilename)
-		check(err)
-		return string(data)
-	} else {
-		// do directory stuff
+	// Length of the HEAD history
+	// Info("git rev-list HEAD --count")
+	lineageID := getLineageIDFromRepo(repo)
 
-		// We instantiate a new repository object from the given path (the .git folder)
-		repo, err = git.PlainOpen(path)
-		CheckIfError(err)
-
-		// Length of the HEAD history
-		// Info("git rev-list HEAD --count")
-		lineageID := getLineageIDFromRepo(repo)
-
-		d1 := []byte(lineageID)
-
-		err = os.WriteFile(cacheFilename, d1, 0644)
-		check(err)
-
-		return lineageID
-	}
+	return Reverse(lineageID)
 }
 
 func getLongestPrefix(str1 string, str2 string) string {
@@ -160,6 +129,51 @@ func getLongestPrefix(str1 string, str2 string) string {
 	}
 }
 
+func check_cache(path string) string {
+	pathparts := strings.Split(path, "/")
+	reponame := pathparts[len(pathparts)-1]
+	cacheFilename := "./" + reponame
+
+	if !strings.HasSuffix(cacheFilename, ".txt") {
+		cacheFilename += ".txt"
+	}
+
+	inputfile, err := os.Stat(path)
+	if err != nil {
+
+		// Checking if the given file exists or not
+		// Using IsNotExist() function
+		if os.IsNotExist(err) {
+			log.Fatal("File not Found !!")
+		}
+	}
+	mode := inputfile.Mode()
+
+	if mode.IsRegular() {
+
+		// do file stuff
+		data, err := os.ReadFile(cacheFilename)
+		check(err)
+		return string(data)
+	}
+
+	log.Fatal(errors.New("Cachepath shouldnt be a directory"))
+}
+
+func write_cache(path string, lineageID string) {
+	pathparts := strings.Split(path, "/")
+	reponame := pathparts[len(pathparts)-1]
+	cacheFilename := "./" + reponame
+
+	if !strings.HasSuffix(cacheFilename, ".txt") {
+		cacheFilename += ".txt"
+	}
+
+	d1 := []byte(lineageID)
+
+	err := os.WriteFile(cacheFilename, d1, 0644)
+	check(err)
+}
 func main() {
 	CheckArgs("<path> <path2>")
 	path1 := os.Args[1]
