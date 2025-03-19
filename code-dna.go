@@ -82,6 +82,10 @@ func lineageIDForPath(path string) string {
 	reponame := pathparts[len(pathparts)-1]
 	cacheFilename := "./" + reponame
 
+	if !strings.HasSuffix(cacheFilename, ".txt") {
+		cacheFilename += ".txt"
+	}
+
 	var repo *git.Repository
 	inputfile, err := os.Stat(path)
 	if err != nil {
