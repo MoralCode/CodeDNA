@@ -2,6 +2,7 @@ package utils
 
 import (
 	"database/sql"
+	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
@@ -76,35 +77,29 @@ func (cache IdentityCache) GetAll() ([]IdentityValue, error) {
 }
 
 func (cache IdentityCache) ExportAllToCSV(destination string) {
-	rows, query_err := cache.GetAll()
-	if query_err != nil {
-		fmt.Println(query_err)
-	}
-	defer rows.Close()
-
-	// create file
-	f, err := os.Create(destination)
+	_, err := cache.GetAll()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
-	// remember to close the file
-	defer f.Close()
-	f.WriteString("id, source, lineage_id\n")
 
-	for rows.Next() {
+	csvFile, err := os.Create(destination)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer csvFile.Close()
 
-		var id int
-		var source string
-		var lineage_id string
+	csvWriter := csv.NewWriter(csvFile)
 
-		err := rows.Scan(&id, &source, &lineage_id)
-		if err != nil {
-			log.Fatal(err)
-		}
+	err = csvWriter.Write([]string{"678", "Jane", "jane@example.com", "$548,980"})
+	if err != nil {
+		// an error occurred during the flush
+		fmt.Println(err)
+	}
 
-		_, err = f.WriteString(fmt.Sprintf("%d, %s, %s\n", id, source, lineage_id))
-		if err != nil {
-			log.Fatal(err)
-		}
+	csvWriter.Flush()
+	err = csvWriter.Error()
+	if err != nil {
+		// an error occurred during the flush
+		fmt.Println(err)
 	}
 }
