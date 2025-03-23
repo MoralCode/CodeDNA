@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -34,11 +35,13 @@ func (cache IdentityCache) check_cache(path string) string {
 
 		// do file stuff
 		data, err := os.ReadFile(cache.Filename)
-		check(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 		return string(data)
 	}
 
-	log.Fatal(errors.New("Cachepath shouldnt be a directory"))
+	panic(errors.New("Cachepath shouldnt be a directory"))
 }
 
 func (cache IdentityCache) write_cache(path string, lineageID string) {
@@ -46,5 +49,7 @@ func (cache IdentityCache) write_cache(path string, lineageID string) {
 	d1 := []byte(lineageID)
 
 	err := os.WriteFile(cache.Filename, d1, 0644)
-	check(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
