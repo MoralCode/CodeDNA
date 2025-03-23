@@ -49,13 +49,8 @@ func (cache IdentityCache) queryDB(sql_query string) (*sql.Rows, error) {
 	return db.Query(sql_query)
 }
 
-func (cache IdentityCache) GetAll() ([]IdentityValue, error) {
+func RowsToValue(rows *sql.Rows) ([]IdentityValue, error) {
 	results := []IdentityValue{}
-	rows, query_err := cache.queryDB("SELECT * FROM repo_identities")
-	if query_err != nil {
-		fmt.Println(query_err)
-	}
-	defer rows.Close()
 
 	for rows.Next() {
 
@@ -74,6 +69,16 @@ func (cache IdentityCache) GetAll() ([]IdentityValue, error) {
 		})
 	}
 	return results, nil
+}
+
+func (cache IdentityCache) GetAll() ([]IdentityValue, error) {
+	rows, query_err := cache.queryDB("SELECT * FROM repo_identities")
+	if query_err != nil {
+		fmt.Println(query_err)
+	}
+	defer rows.Close()
+
+	return RowsToValue(rows)
 }
 
 func (cache IdentityCache) ExportAllToCSV(destination string) {
