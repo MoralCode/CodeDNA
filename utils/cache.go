@@ -20,6 +20,12 @@ type IdentityCache struct {
 	Filename string
 }
 
+type IdentityValue struct {
+	ID        int
+	URL       string
+	LineageID string
+}
+
 func (cache IdentityCache) queryDB(sql_query string) (*sql.Rows, error) {
 	// get a valid DB
 	db, err := sql.Open("sqlite3", cache.Filename)
@@ -42,8 +48,31 @@ func (cache IdentityCache) queryDB(sql_query string) (*sql.Rows, error) {
 	return db.Query(sql_query)
 }
 
-func (cache IdentityCache) GetAll() (*sql.Rows, error) {
-	return cache.queryDB("SELECT * FROM repo_identities")
+func (cache IdentityCache) GetAll() ([]IdentityValue, error) {
+	results := []IdentityValue{}
+	rows, query_err := cache.queryDB("SELECT * FROM repo_identities")
+	if query_err != nil {
+		fmt.Println(query_err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var id int
+		var source string
+		var lineage_id string
+
+		err := rows.Scan(&id, &source, &lineage_id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		results = append(results, IdentityValue{
+			id,
+			source,
+			lineage_id,
+		})
+	}
+	return results, nil
 }
 
 func (cache IdentityCache) ExportAllToCSV(destination string) {
