@@ -24,10 +24,10 @@ type IdentityCache struct {
 func (cache IdentityCache) queryDB(sql_query string) (*sql.Rows, error) {
 	// get a valid DB
 	db, err := sql.Open("sqlite3", cache.Filename)
-	defer db.Close()
 	if err != nil {
 		fmt.Println(err)
 	}
+	defer db.Close()
 
 	init := `CREATE TABLE IF NOT EXISTS repo_identities (
           id INTEGER PRIMARY KEY,  
