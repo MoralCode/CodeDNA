@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -82,7 +83,7 @@ func (cache IdentityCache) GetAll() ([]IdentityValue, error) {
 }
 
 func (cache IdentityCache) ExportAllToCSV(destination string) {
-	_, err := cache.GetAll()
+	data, err := cache.GetAll()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -94,11 +95,17 @@ func (cache IdentityCache) ExportAllToCSV(destination string) {
 	defer csvFile.Close()
 
 	csvWriter := csv.NewWriter(csvFile)
-
-	err = csvWriter.Write([]string{"678", "Jane", "jane@example.com", "$548,980"})
+	err = csvWriter.Write([]string{"id", "source", "lineage_id"})
 	if err != nil {
 		// an error occurred during the flush
 		fmt.Println(err)
+	}
+	for _, v := range data {
+		err = csvWriter.Write([]string{strconv.Itoa(v.ID), v.URL, v.LineageID})
+		if err != nil {
+			// an error occurred during the flush
+			fmt.Println(err)
+		}
 	}
 
 	csvWriter.Flush()
