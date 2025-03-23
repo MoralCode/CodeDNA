@@ -35,7 +35,7 @@ func (cache IdentityCache) queryDB(sql_query string) (*sql.Rows, error) {
           lineage_id TEXT NOT NULL
        );`
 
-	_, init_err := db.Query(init)
+	_, init_err := db.Exec(init)
 	if init_err != nil {
 		fmt.Println(init_err)
 	}
