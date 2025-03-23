@@ -1,13 +1,24 @@
+package utils
 
-func check_cache(path string) string {
-	pathparts := strings.Split(path, "/")
-	reponame := pathparts[len(pathparts)-1]
-	cacheFilename := "./" + reponame
+import (
+	"errors"
+	"log"
+	"os"
 
-	if !strings.HasSuffix(cacheFilename, ".txt") {
-		cacheFilename += ".txt"
-	}
+)
 
+type CSVCache interface {
+	Has()
+	Get()
+	Put()
+	Delete()
+}
+
+type IdentityCache struct {
+	Filename string
+}
+
+func (cache IdentityCache) check_cache(path string) string {
 	inputfile, err := os.Stat(path)
 	if err != nil {
 
@@ -22,7 +33,7 @@ func check_cache(path string) string {
 	if mode.IsRegular() {
 
 		// do file stuff
-		data, err := os.ReadFile(cacheFilename)
+		data, err := os.ReadFile(cache.Filename)
 		check(err)
 		return string(data)
 	}
@@ -30,17 +41,10 @@ func check_cache(path string) string {
 	log.Fatal(errors.New("Cachepath shouldnt be a directory"))
 }
 
-func write_cache(path string, lineageID string) {
-	pathparts := strings.Split(path, "/")
-	reponame := pathparts[len(pathparts)-1]
-	cacheFilename := "./" + reponame
-
-	if !strings.HasSuffix(cacheFilename, ".txt") {
-		cacheFilename += ".txt"
-	}
+func (cache IdentityCache) write_cache(path string, lineageID string) {
 
 	d1 := []byte(lineageID)
 
-	err := os.WriteFile(cacheFilename, d1, 0644)
+	err := os.WriteFile(cache.Filename, d1, 0644)
 	check(err)
 }
