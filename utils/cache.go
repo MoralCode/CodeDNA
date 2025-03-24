@@ -71,7 +71,7 @@ func (cache *IdentityCache) Add(identity IdentityValue) error {
 		cache.connect(true)
 		// return nil, fmt.Errorf("database connection is nil")
 	}
-	result := cache.db.Create(identity)
+	result := cache.db.Create(&identity)
 	if result.Error != nil {
 		return result.Error
 	}
