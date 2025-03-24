@@ -1,13 +1,15 @@
 package utils
 
 import (
-	"database/sql"
 	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"time"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -21,73 +23,61 @@ type CSVCache interface {
 
 type IdentityCache struct {
 	Filename string
+	db       *gorm.DB
 }
 
 type IdentityValue struct {
-	ID        int
+	ID        uint `gorm:"primaryKey"`
 	Timestamp time.Time
-	URL       string
+	URL       string `gorm:"unique"`
 	LineageID string
 }
 
-func (cache IdentityCache) queryDB(sql_query string) (*sql.Rows, error) {
-	// get a valid DB
-	db, err := sql.Open("sqlite3", cache.Filename)
+func (cache *IdentityCache) connect(automigrate bool) (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open(cache.Filename), &gorm.Config{})
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
-	defer db.Close()
-
-	init := `CREATE TABLE IF NOT EXISTS repo_identities (
-          id INTEGER PRIMARY KEY,
-		  timestamp TIMESTAMP NOT NULL,
-          source TEXT NOT NULL,
-          lineage_id TEXT NOT NULL
-       );`
-
-	_, init_err := db.Exec(init)
-	if init_err != nil {
-		fmt.Println(init_err)
-	}
-
-	return db.Query(sql_query)
-}
-
-func RowsToValue(rows *sql.Rows) ([]IdentityValue, error) {
-	results := []IdentityValue{}
-
-	for rows.Next() {
-
-		var id int
-		var timestamp time.Time
-		var source string
-		var lineage_id string
-
-		err := rows.Scan(&id, &timestamp, &source, &lineage_id)
+	if automigrate {
+		// Perform database migration
+		err = db.AutoMigrate(&IdentityValue{})
 		if err != nil {
 			log.Fatal(err)
 		}
-		results = append(results, IdentityValue{
-			id,
-			timestamp,
-			source,
-			lineage_id,
-		})
 	}
-	return results, nil
+	cache.db = db
+	return db, nil
 }
 
-func (cache IdentityCache) GetAll() ([]IdentityValue, error) {
-	rows, query_err := cache.queryDB("SELECT * FROM repo_identities")
-	if query_err != nil {
-		fmt.Println(query_err)
+func (cache *IdentityCache) GetAll() ([]IdentityValue, error) {
+	if cache.db == nil {
+		cache.connect(true)
+		// return nil, fmt.Errorf("database connection is nil")
 	}
-	defer rows.Close()
-
-	return RowsToValue(rows)
+	if cache.db == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+	var identities []IdentityValue
+	result := cache.db.Find(&identities)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return identities, nil
 }
 
-func (cache IdentityCache) ExportAllToCSV(destination string) {
+func (cache *IdentityCache) Add(identity IdentityValue) error {
+	if cache.db == nil {
+		cache.connect(true)
+		// return nil, fmt.Errorf("database connection is nil")
+	}
+	result := cache.db.Create(identity)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (cache *IdentityCache) ExportAllToCSV(destination string) {
 	data, err := cache.GetAll()
 	if err != nil {
 		fmt.Println(err)
@@ -106,7 +96,7 @@ func (cache IdentityCache) ExportAllToCSV(destination string) {
 		fmt.Println(err)
 	}
 	for _, v := range data {
-		err = csvWriter.Write([]string{strconv.Itoa(v.ID), v.URL, v.LineageID})
+		err = csvWriter.Write([]string{strconv.FormatUint(uint64(v.ID), 10), v.URL, v.LineageID})
 		if err != nil {
 			// an error occurred during the flush
 			fmt.Println(err)
