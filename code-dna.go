@@ -199,13 +199,24 @@ type Analyze struct {
 	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
 }
 
+type Export struct {
+	Enabled bool   `hidden:"true" no-ini:"true"`
+	Path    string `long:"path" description:"The path to export to" default:"database.csv"`
+	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
+}
+
 type MainCmd struct {
 	// cache path
 	Analyze Analyze `command:"analyze" description:"Analyze a repository"`
+	Export  Export  `command:"export" description:"export the database to CSV"`
 }
 
 // Detect when the subcommand is used.
 func (c *Analyze) Execute(args []string) error {
+	c.Enabled = true
+	return nil
+}
+func (c *Export) Execute(args []string) error {
 	c.Enabled = true
 	return nil
 }
@@ -232,6 +243,10 @@ func main() {
 		fmt.Println("Hoooooo")
 		fmt.Println(opts.Analyze.Args.Repository)
 
+	}
+	if opts.Export.Enabled {
+		fmt.Println("Exporting db to", opts.Export.Path)
+		cache.ExportAllToCSV(opts.Export.Path)
 	}
 
 	id1 := lineageIDForPath(path1)
