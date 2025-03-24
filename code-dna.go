@@ -240,8 +240,27 @@ func main() {
 	}
 
 	if opts.Analyze.Enabled {
-		fmt.Println("Hoooooo")
-		fmt.Println(opts.Analyze.Args.Repository)
+		analysisPath := opts.Analyze.Args.Repository
+		fmt.Println("Starting analysis for", analysisPath)
+		var lineageID string
+		// classify path type
+		if isValidUrl(analysisPath) {
+			fmt.Println("Querying from github...")
+			lineageID = lineageIDFromGitHub(analysisPath)
+		} else if exists, err := exists(analysisPath); err != nil && exists {
+			fmt.Println("Reading from disk...")
+			lineageID = lineageIDForPath(analysisPath)
+		} else {
+			fmt.Println("Fetching from cache...")
+			// assume its a name and fetch from cache
+			cached, err := cache.GetByNickname(analysisPath)
+			if err != nil {
+				panic(err)
+			}
+			lineageID = cached.LineageID
+		}
+
+		fmt.Println(lineageID)
 
 	}
 	if opts.Export.Enabled {
@@ -249,26 +268,5 @@ func main() {
 		cache.ExportAllToCSV(opts.Export.Path)
 	}
 
-	id1 := lineageIDForPath(path1)
-	id2 := lineageIDForPath(path2)
-
-	var shortest string
-	var longest string
-	if len(id1) > len(id2) {
-		shortest = id2
-		longest = id1
-	} else {
-		shortest = id1
-		longest = id2
-	}
-
-	longest = longest[:len(shortest)]
-	// extra := longest[len(shortest):]
-
-	lp := getLongestPrefix(shortest, longest)
-
-	fmt.Println("Input 1 signature length:", len(id1))
-	fmt.Println("Input 2 signature length:", len(id2))
-	fmt.Println("Shared Prefix length:\t ", len(lp))
 
 }
