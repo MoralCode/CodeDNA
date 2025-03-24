@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/jessevdk/go-flags"
+
+	"github.com/MoralCode/CodeDNA/utils"
 	"github.com/go-git/go-git/v5"
 	. "github.com/go-git/go-git/v5/_examples"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -210,6 +212,10 @@ func main() {
 			parser.WriteHelp(os.Stdout)
 		}
 		os.Exit(1)
+	}
+
+	cache := utils.IdentityCache{
+		Filename: "./cache.sqlite",
 	}
 
 	id1 := lineageIDForPath(path1)
