@@ -186,36 +186,52 @@ func getLongestPrefix(str1 string, str2 string) string {
 		return getLongestPrefix(left1, left2)
 	}
 }
-func main() {
-	type MainCmd struct {
-		Cmd1 struct {
-			Opt1 string `long:"opt1" description:"first opt" required:"true"`
-			Opt2 int    `long:"opt2" description:"second opt" default:"10"`
-		} `command:"cmd1"`
 
-		Cmd2 struct {
-			OptA string `long:"optA" description:"opt a" default:":8080"`
-			OptB string `long:"optB" description:"opt b" default:"debug"`
-		} `command:"cmd2"`
-	}
+// https://github.com/jessevdk/go-flags/issues/405
+// https://github.com/jessevdk/go-flags/issues/387
+// I think this arg parsing lib is abandoned.....
+type Analyze struct {
+	Enabled bool `hidden:"true" no-ini:"true"`
+
+	Args struct {
+		Repository string `description:"The repository to analyze" required:"true"`
+	} ` positional-args:"yes" required:"yes"`
+	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
+}
+
+type MainCmd struct {
+	// cache path
+	Analyze Analyze `command:"analyze" description:"Analyze a repository"`
+}
+
+// Detect when the subcommand is used.
+func (c *Analyze) Execute(args []string) error {
+	c.Enabled = true
+	return nil
+}
+
+func main() {
 
 	// Callback which will invoke callto:<argument> to call a number.
 	// Note that this works just on OS X (and probably only with
 	// Skype) but it shows the idea.
-	var mainCmd MainCmd
-	parser := flags.NewParser(&mainCmd, flags.Default)
-	if _, err := parser.Parse(); err != nil {
-		if err, ok := err.(*flags.Error); ok {
-			if err.Type == flags.ErrHelp {
-				os.Exit(0)
-			}
-			parser.WriteHelp(os.Stdout)
-		}
-		os.Exit(1)
+	var opts MainCmd
+
+	// flags.Parse(&opts) which uses os.Args
+	_, err := flags.Parse(&opts)
+
+	if err != nil {
+		panic(err)
 	}
 
 	cache := utils.IdentityCache{
 		Filename: "./cache.sqlite",
+	}
+
+	if opts.Analyze.Enabled {
+		fmt.Println("Hoooooo")
+		fmt.Println(opts.Analyze.Args.Repository)
+
 	}
 
 	id1 := lineageIDForPath(path1)
