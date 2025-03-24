@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -24,6 +25,7 @@ type IdentityCache struct {
 
 type IdentityValue struct {
 	ID        int
+	Timestamp time.Time
 	URL       string
 	LineageID string
 }
@@ -37,7 +39,8 @@ func (cache IdentityCache) queryDB(sql_query string) (*sql.Rows, error) {
 	defer db.Close()
 
 	init := `CREATE TABLE IF NOT EXISTS repo_identities (
-          id INTEGER PRIMARY KEY,  
+          id INTEGER PRIMARY KEY,
+		  timestamp TIMESTAMP NOT NULL,
           source TEXT NOT NULL,
           lineage_id TEXT NOT NULL
        );`
@@ -56,15 +59,17 @@ func RowsToValue(rows *sql.Rows) ([]IdentityValue, error) {
 	for rows.Next() {
 
 		var id int
+		var timestamp time.Time
 		var source string
 		var lineage_id string
 
-		err := rows.Scan(&id, &source, &lineage_id)
+		err := rows.Scan(&id, &timestamp, &source, &lineage_id)
 		if err != nil {
 			log.Fatal(err)
 		}
 		results = append(results, IdentityValue{
 			id,
+			timestamp,
 			source,
 			lineage_id,
 		})
