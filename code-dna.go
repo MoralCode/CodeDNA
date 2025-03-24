@@ -37,6 +37,15 @@ func getLineageIDFromHashes(commit_hashes []string) string {
 	return lineageID
 }
 
+func getOriginUrlFromRepo(repo *git.Repository) (string, error) {
+	remote, err := repo.Remote("origin")
+	if err != nil {
+		return "", err
+	}
+
+	return remote.Config().URLs[0], nil
+}
+
 func getLineageIDFromRepo(repo *git.Repository) (string, error) {
 	// ... retrieving the HEAD reference
 	ref, err := repo.Head()
@@ -272,6 +281,9 @@ func main() {
 
 			lineageID, err = getLineageIDFromRepo(repo)
 			CheckIfError(err)
+			source, err = getOriginUrlFromRepo(repo)
+			CheckIfError(err)
+
 		}
 
 		fmt.Println(lineageID)
