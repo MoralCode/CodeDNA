@@ -268,10 +268,7 @@ func main() {
 			fmt.Println("Querying from github...")
 			lineageID = lineageIDFromGitHub(analysisPath)
 			source = analysisPath
-		} else if exists, err := exists(analysisPath); err != nil && exists {
-			fmt.Println("Reading from disk...")
-			lineageID = lineageIDForPath(analysisPath)
-		} else {
+		} else if _, err := os.Stat(analysisPath); errors.Is(err, os.ErrNotExist) {
 			fmt.Println("Fetching from cache...")
 			// assume its a name and fetch from cache
 			cached, err := cache.GetByNickname(analysisPath)
@@ -280,6 +277,10 @@ func main() {
 			}
 			lineageID = cached.LineageID
 			source = cached.URL
+
+		} else {
+			fmt.Println("Reading from disk...")
+			lineageID = lineageIDForPath(analysisPath)
 		}
 
 		fmt.Println(lineageID)
