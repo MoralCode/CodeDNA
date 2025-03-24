@@ -165,7 +165,7 @@ func lineageIDForPath(path string) string {
 	lineageID, err := getLineageIDFromRepo(repo)
 	CheckIfError(err)
 
-	return Reverse(lineageID)
+	return lineageID
 }
 
 func getLongestPrefix(str1 string, str2 string) string {
