@@ -66,6 +66,22 @@ func (cache *IdentityCache) GetAll() ([]IdentityValue, error) {
 	return identities, nil
 }
 
+func (cache *IdentityCache) GetByNickname(nickname string) (*IdentityValue, error) {
+	if cache.db == nil {
+		cache.connect(true)
+		// return nil, fmt.Errorf("database connection is nil")
+	}
+	if cache.db == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+	var identity IdentityValue
+	result := cache.db.Take(&identity, "nickname = ?", nickname)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &identity, nil
+}
+
 func (cache *IdentityCache) Add(identity IdentityValue) error {
 	if cache.db == nil {
 		cache.connect(true)
