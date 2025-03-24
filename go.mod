@@ -7,6 +7,7 @@ toolchain go1.23.6
 require (
 	github.com/go-git/go-git/v5 v5.14.0
 	github.com/google/go-github/v69 v69.2.0
+	github.com/jessevdk/go-flags v1.6.1
 	github.com/mattn/go-sqlite3 v1.14.24
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12

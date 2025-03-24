@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/jessevdk/go-flags"
 	"github.com/go-git/go-git/v5"
 	. "github.com/go-git/go-git/v5/_examples"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -184,9 +185,32 @@ func getLongestPrefix(str1 string, str2 string) string {
 	}
 }
 func main() {
-	CheckArgs("<path> <path2>")
-	path1 := os.Args[1]
-	path2 := os.Args[2]
+	type MainCmd struct {
+		Cmd1 struct {
+			Opt1 string `long:"opt1" description:"first opt" required:"true"`
+			Opt2 int    `long:"opt2" description:"second opt" default:"10"`
+		} `command:"cmd1"`
+
+		Cmd2 struct {
+			OptA string `long:"optA" description:"opt a" default:":8080"`
+			OptB string `long:"optB" description:"opt b" default:"debug"`
+		} `command:"cmd2"`
+	}
+
+	// Callback which will invoke callto:<argument> to call a number.
+	// Note that this works just on OS X (and probably only with
+	// Skype) but it shows the idea.
+	var mainCmd MainCmd
+	parser := flags.NewParser(&mainCmd, flags.Default)
+	if _, err := parser.Parse(); err != nil {
+		if err, ok := err.(*flags.Error); ok {
+			if err.Type == flags.ErrHelp {
+				os.Exit(0)
+			}
+			parser.WriteHelp(os.Stdout)
+		}
+		os.Exit(1)
+	}
 
 	id1 := lineageIDForPath(path1)
 	id2 := lineageIDForPath(path2)
