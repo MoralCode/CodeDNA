@@ -152,22 +152,6 @@ func lineageIDFromGitHub(repourl string) string {
 	return Reverse(lineageID)
 }
 
-func lineageIDForPath(path string) string {
-
-	var repo *git.Repository
-
-	// We instantiate a new repository object from the given path (the .git folder)
-	repo, err := git.PlainOpen(path)
-	CheckIfError(err)
-
-	// Length of the HEAD history
-	// Info("git rev-list HEAD --count")
-	lineageID, err := getLineageIDFromRepo(repo)
-	CheckIfError(err)
-
-	return lineageID
-}
-
 func getLongestPrefix(str1 string, str2 string) string {
 
 	length := len(str1)
@@ -280,7 +264,14 @@ func main() {
 
 		} else {
 			fmt.Println("Reading from disk...")
-			lineageID = lineageIDForPath(analysisPath)
+			var repo *git.Repository
+
+			// We instantiate a new repository object from the given path (the .git folder)
+			repo, err := git.PlainOpen(analysisPath)
+			CheckIfError(err)
+
+			lineageID, err = getLineageIDFromRepo(repo)
+			CheckIfError(err)
 		}
 
 		fmt.Println(lineageID)
