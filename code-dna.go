@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/url"
 	"os"
@@ -75,12 +76,22 @@ func isValidUrl(toTest string) bool {
 	return true
 }
 
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, fs.ErrNotExist) {
+		return false, nil
+	}
+	return false, err
+}
+
 func check(e error) {
 	if e != nil {
 		panic(e)
 	}
 }
-
 
 func lineageIDFromGitHub(repourl string) string {
 	if !isValidUrl(repourl) {
