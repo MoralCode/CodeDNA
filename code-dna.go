@@ -261,10 +261,13 @@ func main() {
 		analysisPath := opts.Analyze.Args.Repository
 		fmt.Println("Starting analysis for", analysisPath)
 		var lineageID string
+		var source string
+
 		// classify path type
 		if isValidUrl(analysisPath) {
 			fmt.Println("Querying from github...")
 			lineageID = lineageIDFromGitHub(analysisPath)
+			source = analysisPath
 		} else if exists, err := exists(analysisPath); err != nil && exists {
 			fmt.Println("Reading from disk...")
 			lineageID = lineageIDForPath(analysisPath)
@@ -276,9 +279,11 @@ func main() {
 				panic(err)
 			}
 			lineageID = cached.LineageID
+			source = cached.URL
 		}
 
 		fmt.Println(lineageID)
+		fmt.Println(source)
 
 	}
 	if opts.Export.Enabled {
