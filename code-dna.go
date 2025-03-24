@@ -37,17 +37,21 @@ func getLineageIDFromHashes(commit_hashes []string) string {
 	return lineageID
 }
 
-func getLineageIDFromRepo(repo *git.Repository) string {
+func getLineageIDFromRepo(repo *git.Repository) (string, error) {
 	// ... retrieving the HEAD reference
 	ref, err := repo.Head()
-	CheckIfError(err)
+	if err != nil {
+		return "", err
+	}
 
 	// ... retrieves the commit history
 	// since := time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)
 	// until := time.Date(2019, 7, 30, 0, 0, 0, 0, time.UTC)
 	cIter, err := repo.Log(&git.LogOptions{From: ref.Hash(), Order: git.LogOrderDFSPost})
 	// , Since: &since, Until: &until
-	CheckIfError(err)
+	if err != nil {
+		return "", err
+	}
 
 	var commit_hashes []string
 
@@ -55,9 +59,11 @@ func getLineageIDFromRepo(repo *git.Repository) string {
 		commit_hashes = append(commit_hashes, string(c.Hash.String()))
 		return nil
 	})
-	CheckIfError(err)
+	if err != nil {
+		return "", err
+	}
 	lineageID := getLineageIDFromHashes(commit_hashes)
-	return Reverse(lineageID)
+	return Reverse(lineageID), nil
 }
 
 // isValidUrl tests a string to determine if it is a well-structured url or not.
@@ -156,7 +162,8 @@ func lineageIDForPath(path string) string {
 
 	// Length of the HEAD history
 	// Info("git rev-list HEAD --count")
-	lineageID := getLineageIDFromRepo(repo)
+	lineageID, err := getLineageIDFromRepo(repo)
+	CheckIfError(err)
 
 	return Reverse(lineageID)
 }
