@@ -380,7 +380,7 @@ func main() {
 		for _, repo := range repos {
 			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
 			fmt.Println("Importing", repoName, "from", owner)
-			cloneDir := tempdir + "/" + owner + "-" + repoName
+			cloneDir := tempdir + "/" + owner + "_" + repoName
 			err := os.MkdirAll(cloneDir, 0755)
 			CheckIfError(err)
 
