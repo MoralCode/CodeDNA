@@ -287,6 +287,17 @@ func main() {
 
 		}
 
+		if !cache.Has(source) {
+			newValue := utils.IdentityValue{
+				URL:       source,
+				LineageID: lineageID,
+			}
+			if opts.Analyze.Args.Nickname != "" {
+				newValue.Nickname = opts.Analyze.Args.Nickname
+			}
+			cache.Add(newValue)
+		}
+
 		fmt.Println(lineageID)
 		fmt.Println(source)
 

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -80,6 +81,26 @@ func (cache *IdentityCache) GetByNickname(nickname string) (*IdentityValue, erro
 		return nil, result.Error
 	}
 	return &identity, nil
+}
+
+func (cache *IdentityCache) Has(source string) bool {
+	if cache.db == nil {
+		cache.connect(true)
+		// return nil, fmt.Errorf("database connection is nil")
+	}
+	if cache.db == nil {
+		return false
+	}
+	var identity IdentityValue
+	result := cache.db.Take(&identity, "url = ?", source)
+	// one of these is printing an error?
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return false
+	}
+	if result.Error != nil {
+		return false
+	}
+	return true
 }
 
 func (cache *IdentityCache) Add(identity IdentityValue) error {
