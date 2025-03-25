@@ -221,6 +221,39 @@ func getLongestPrefix(str1 string, str2 string) string {
 	}
 }
 
+type RepoImport struct {
+	RepoSource string
+	Nickname   string
+}
+
+func importManyRepos(filename string) ([]RepoImport, error) {
+	// open file
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// remember to close the file at the end of the program
+	defer f.Close()
+
+	// read csv values using csv.Reader
+	csvReader := csv.NewReader(f)
+	data, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var repos []RepoImport
+
+	for _, element := range data {
+		repos = append(repos, RepoImport{
+			RepoSource: element[0],
+			Nickname:   element[1],
+		})
+	}
+	return repos, nil
+}
+
 // https://github.com/jessevdk/go-flags/issues/405
 // https://github.com/jessevdk/go-flags/issues/387
 // I think this arg parsing lib is abandoned.....
