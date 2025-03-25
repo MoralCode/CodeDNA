@@ -206,7 +206,8 @@ type Analyze struct {
 
 	Args struct {
 		Repository string `description:"The repository to analyze" required:"true"`
-	} ` positional-args:"yes" required:"yes"`
+		Nickname   string `description:"A nickname to assign to the new record"`
+	} ` positional-args:"yes"`
 	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
 }
 
