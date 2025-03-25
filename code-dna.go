@@ -108,22 +108,29 @@ func check(e error) {
 	}
 }
 
-func lineageIDFromGitHub(repourl string) string {
-	if !isValidUrl(repourl) {
-		log.Fatal(errors.New("url is not valid"))
-	}
-
+func repoOwnerAndNameFromURL(repourl string) (string, string) {
 	parsedurl, err := url.Parse(repourl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	client := github.NewClient(nil)
-	ctx := context.Background()
-
 	pathparts := strings.Split(parsedurl.Path, "/")
 	reponame := pathparts[len(pathparts)-1]
 	owner := pathparts[len(pathparts)-2]
+	return owner, reponame
+}
+
+func lineageIDFromGitHub(repourl string) string {
+	if !isValidUrl(repourl) {
+		log.Fatal(errors.New("url is not valid"))
+	}
+
+	
+
+	client := github.NewClient(nil)
+	ctx := context.Background()
+
+	owner, reponame := repoOwnerAndNameFromURL(repourl)
 
 	var allCommits []*github.RepositoryCommit
 
