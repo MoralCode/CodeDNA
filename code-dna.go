@@ -122,6 +122,8 @@ func repoOwnerAndNameFromURL(repourl string) (string, string) {
 }
 
 func lineageIDFromGitHub(repourl string) string {
+
+	// TODO: maybe use  https://github.com/shurcooL/githubv4
 	if !isValidUrl(repourl) {
 		log.Fatal(errors.New("url is not valid"))
 	}
