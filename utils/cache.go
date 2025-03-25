@@ -28,10 +28,10 @@ type IdentityCache struct {
 }
 
 type IdentityValue struct {
-	ID        uint   `gorm:"primaryKey"`
-	Nickname  string `gorm:"unique"`
-	Timestamp time.Time
-	URL       string `gorm:"unique"`
+	ID        uint      `gorm:"primaryKey"`
+	Nickname  string    `gorm:"unique"`
+	Timestamp time.Time `gorm:"default:current_timestamp"`
+	URL       string    `gorm:"unique"`
 	LineageID string
 }
 
