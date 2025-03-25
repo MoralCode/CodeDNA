@@ -168,6 +168,22 @@ func lineageIDFromGitHub(repourl string) string {
 	return Reverse(lineageID)
 }
 
+func lineageIDFromGitClone(repourl string, tempdir string) string {
+	repo, err := git.PlainClone(tempdir, true, &git.CloneOptions{
+		URL:               repourl,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+	})
+	if errors.Is(err, git.ErrRepositoryAlreadyExists) {
+		repo, err = git.PlainOpen(tempdir)
+		CheckIfError(err)
+	}
+
+	lineageId, err := getLineageIDFromRepo(repo)
+	CheckIfError(err)
+	return lineageId
+
+}
+
 func getLongestPrefix(str1 string, str2 string) string {
 
 	length := len(str1)
