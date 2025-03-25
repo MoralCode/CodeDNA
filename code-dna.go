@@ -175,6 +175,14 @@ func lineageIDFromGitClone(repourl string, tempdir string) string {
 	repo, err := git.PlainClone(tempdir, true, &git.CloneOptions{
 		URL:               repourl,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+		// Differently than the git CLI, by default go-git downloads
+		// all tags and its related objects. To avoid unnecessary
+		// data transmission and processing, opt-out tags.
+		Tags:         git.NoTags,
+		SingleBranch: true,
+		// Not a net positive change for performance, this was added
+		// to better align the output when compared with the git CLI.
+		Progress: os.Stdout,
 	})
 	if errors.Is(err, git.ErrRepositoryAlreadyExists) {
 		repo, err = git.PlainOpen(tempdir)
