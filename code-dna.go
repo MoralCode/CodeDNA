@@ -369,6 +369,36 @@ func main() {
 		fmt.Println(source)
 
 	}
+
+	if opts.Import.Enabled {
+		fmt.Println("Importing from", opts.Import.Path)
+		repos, err := importManyRepos(opts.Import.Path)
+		CheckIfError(err)
+
+		tempdir := "./repositories"
+
+		for _, repo := range repos {
+			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
+			fmt.Println("Importing", repoName, "from", owner)
+			cloneDir := tempdir + "/" + owner + "-" + repoName
+			err := os.MkdirAll(cloneDir, 0755)
+			CheckIfError(err)
+
+			lineageID := lineageIDFromGitClone(repo.RepoSource, cloneDir)
+
+			if !cache.Has(repo.RepoSource) {
+				newValue := utils.IdentityValue{
+					URL:       repo.RepoSource,
+					LineageID: lineageID,
+				}
+				if repo.Nickname != "" {
+					newValue.Nickname = repo.Nickname
+				}
+				cache.Add(newValue)
+			}
+		}
+	}
+
 	if opts.Export.Enabled {
 		fmt.Println("Exporting db to", opts.Export.Path)
 		cache.ExportAllToCSV(opts.Export.Path)
