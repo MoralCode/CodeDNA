@@ -304,11 +304,11 @@ type ImportCommand struct {
 }
 
 type MainCmd struct {
-	Verbosity []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
-	// cache path
-	Analyze Analyze       `command:"analyze" description:"Analyze a repository"`
-	Export  Export        `command:"export" description:"export the database to CSV"`
-	Import  ImportCommand `command:"import" description:"import from CSV"`
+	Verbosity []bool        `short:"v" long:"verbose" description:"Show verbose debug information"`
+	CachePath string        `long:"cachepath" default:"cache.sqlite" description:"The path to the cache database to use"`
+	Analyze   Analyze       `command:"analyze" description:"Analyze a repository"`
+	Export    Export        `command:"export" description:"export the database to CSV"`
+	Import    ImportCommand `command:"import" description:"import from CSV"`
 }
 
 // Detect when the subcommand is used.
@@ -335,7 +335,7 @@ func main() {
 	}
 
 	cache := utils.IdentityCache{
-		Filename: "./cache.sqlite",
+		Filename: opts.CachePath,
 	}
 
 	if len(opts.Verbosity) >= 1 {
