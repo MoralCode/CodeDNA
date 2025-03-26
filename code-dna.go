@@ -247,6 +247,43 @@ func importManyRepos(filename string) ([]RepoImport, error) {
 	return repos, nil
 }
 
+func analyzeRepo(analysisPath string) (string, string, error) {
+	fmt.Println("Starting analysis for", analysisPath)
+	var lineageID string
+	var source string
+
+	// classify path type
+	if isValidUrl(analysisPath) {
+		fmt.Println("Querying from github...")
+		lineageID = lineageIDFromGitHub(analysisPath)
+		source = analysisPath
+	} else if _, err := os.Stat(analysisPath); errors.Is(err, os.ErrNotExist) {
+		fmt.Println("Fetching from cache...")
+		// assume its a name and fetch from cache
+		cached, err := cache.GetByNickname(analysisPath)
+		if err != nil {
+			panic(err)
+		}
+		lineageID = cached.LineageID
+		source = cached.URL
+
+	} else {
+		fmt.Println("Reading from disk...")
+		var repo *git.Repository
+
+		// We instantiate a new repository object from the given path (the .git folder)
+		repo, err := git.PlainOpen(analysisPath)
+		CheckIfError(err)
+
+		lineageID, err = getLineageIDFromRepo(repo)
+		CheckIfError(err)
+		source, err = getOriginUrlFromRepo(repo)
+		CheckIfError(err)
+
+	}
+	return source, lineageID, nil
+}
+
 // https://github.com/jessevdk/go-flags/issues/405
 // https://github.com/jessevdk/go-flags/issues/387
 // I think this arg parsing lib is abandoned.....
@@ -313,39 +350,8 @@ func main() {
 
 	if opts.Analyze.Enabled {
 		analysisPath := opts.Analyze.Args.Repository
-		fmt.Println("Starting analysis for", analysisPath)
-		var lineageID string
-		var source string
-
-		// classify path type
-		if isValidUrl(analysisPath) {
-			fmt.Println("Querying from github...")
-			lineageID = lineageIDFromGitHub(analysisPath)
-			source = analysisPath
-		} else if _, err := os.Stat(analysisPath); errors.Is(err, os.ErrNotExist) {
-			fmt.Println("Fetching from cache...")
-			// assume its a name and fetch from cache
-			cached, err := cache.GetByNickname(analysisPath)
-			if err != nil {
-				panic(err)
-			}
-			lineageID = cached.LineageID
-			source = cached.URL
-
-		} else {
-			fmt.Println("Reading from disk...")
-			var repo *git.Repository
-
-			// We instantiate a new repository object from the given path (the .git folder)
-			repo, err := git.PlainOpen(analysisPath)
-			CheckIfError(err)
-
-			lineageID, err = getLineageIDFromRepo(repo)
-			CheckIfError(err)
-			source, err = getOriginUrlFromRepo(repo)
-			CheckIfError(err)
-
-		}
+		source, lineageID, err := analyzeRepo(analysisPath)
+		CheckIfError(err)
 
 		if !cache.Has(source) {
 			newValue := utils.IdentityValue{
