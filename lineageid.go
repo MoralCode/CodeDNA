@@ -53,6 +53,10 @@ func LineageIDFromHashes(commit_hashes []CommitHash, prefixLength uint8) *Lineag
 }
 
 func (lineageID *LineageID) String() string {
+	return lineageID.StringHex()
+}
+
+func (lineageID *LineageID) StringHex() string {
 	return hex.EncodeToString(lineageID.idData)
 }
 
