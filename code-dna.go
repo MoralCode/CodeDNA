@@ -110,8 +110,6 @@ func lineageIDFromGitHub(repourl string) string {
 		log.Fatal(errors.New("url is not valid"))
 	}
 
-	
-
 	client := github.NewClient(nil)
 	ctx := context.Background()
 
@@ -324,13 +322,8 @@ func (c *ImportCommand) Execute(args []string) error {
 }
 
 func main() {
-
-	// Callback which will invoke callto:<argument> to call a number.
-	// Note that this works just on OS X (and probably only with
-	// Skype) but it shows the idea.
 	var opts MainCmd
 
-	// flags.Parse(&opts) which uses os.Args
 	_, err := flags.Parse(&opts)
 
 	if err != nil {
@@ -414,6 +407,5 @@ func main() {
 		fmt.Println("Exporting db to", opts.Export.Path)
 		cache.ExportAllToCSV(opts.Export.Path)
 	}
-
 
 }
