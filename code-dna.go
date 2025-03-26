@@ -300,7 +300,7 @@ type Export struct {
 type ImportCommand struct {
 	Enabled       bool   `hidden:"true" no-ini:"true"`
 	Path          string `long:"path" description:"The path to import from" required:"true"`
-	CloneExisting bool   `long:"clone-existing" description:"whether or not to clone a repository if it exists in the cache" default:"false"`
+	CloneExisting bool   `long:"clone-existing" description:"whether or not to clone a repository if it exists in the cache"`
 	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
 }
 
