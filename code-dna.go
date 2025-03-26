@@ -374,6 +374,11 @@ func main() {
 			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
 			fmt.Println("Importing", repoName, "from", owner, "as \""+repo.Nickname+"\"")
 
+			if cache.Has(repo.RepoSource) {
+				fmt.Println("\t Source exists in cache, skipping")
+				continue
+			}
+
 			cloneDir := tempdir + "/" + owner + "_" + repoName
 			err := os.MkdirAll(cloneDir, 0755)
 			CheckIfError(err)
