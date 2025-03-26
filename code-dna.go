@@ -258,15 +258,7 @@ func analyzeRepo(analysisPath string) (string, string, error) {
 		lineageID = lineageIDFromGitHub(analysisPath)
 		source = analysisPath
 	} else if _, err := os.Stat(analysisPath); errors.Is(err, os.ErrNotExist) {
-		fmt.Println("Fetching from cache...")
-		// assume its a name and fetch from cache
-		cached, err := cache.GetByNickname(analysisPath)
-		if err != nil {
-			panic(err)
-		}
-		lineageID = cached.LineageID
-		source = cached.URL
-
+		return "", "", err
 	} else {
 		fmt.Println("Reading from disk...")
 		var repo *git.Repository
@@ -351,7 +343,16 @@ func main() {
 	if opts.Analyze.Enabled {
 		analysisPath := opts.Analyze.Args.Repository
 		source, lineageID, err := analyzeRepo(analysisPath)
-		CheckIfError(err)
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Println("Could not Analyze. Attempting fetch from cache...")
+			// assume its a name and fetch from cache
+			cached, err := cache.GetByNickname(analysisPath)
+			if err != nil {
+				panic(err)
+			}
+			lineageID = cached.LineageID
+			source = cached.URL
+		}
 
 		if !cache.Has(source) {
 			newValue := utils.IdentityValue{
