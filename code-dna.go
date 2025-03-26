@@ -299,7 +299,7 @@ type Export struct {
 
 type ImportCommand struct {
 	Enabled bool   `hidden:"true" no-ini:"true"`
-	Path    string `long:"path" description:"The path to import from" default:"import.csv"`
+	Path    string `long:"path" description:"The path to import from" required:"true"`
 	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
 }
 
