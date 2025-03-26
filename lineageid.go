@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"math/bits"
@@ -58,6 +59,10 @@ func (lineageID *LineageID) String() string {
 
 func (lineageID *LineageID) StringHex() string {
 	return hex.EncodeToString(lineageID.idData)
+}
+
+func (lineageID *LineageID) StringB64() string {
+	return base64.StdEncoding.EncodeToString(lineageID.idData)
 }
 
 func (lineageID *LineageID) Bytes() []byte {
