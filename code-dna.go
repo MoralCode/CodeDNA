@@ -298,8 +298,9 @@ type Export struct {
 }
 
 type ImportCommand struct {
-	Enabled bool   `hidden:"true" no-ini:"true"`
-	Path    string `long:"path" description:"The path to import from" required:"true"`
+	Enabled       bool   `hidden:"true" no-ini:"true"`
+	Path          string `long:"path" description:"The path to import from" required:"true"`
+	CloneExisting bool   `long:"clone-existing" description:"whether or not to clone a repository if it exists in the cache" default:"false"`
 	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
 }
 
@@ -383,7 +384,7 @@ func main() {
 			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
 			fmt.Println("Importing", repoName, "from", owner, "as \""+repo.Nickname+"\"")
 
-			if cache.Has(repo.RepoSource) {
+			if !opts.Import.CloneExisting && cache.Has(repo.RepoSource) {
 				fmt.Println("\t Source exists in cache, skipping")
 				continue
 			}
