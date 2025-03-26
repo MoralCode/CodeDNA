@@ -302,6 +302,7 @@ type ImportCommand struct {
 }
 
 type MainCmd struct {
+	Verbosity []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
 	// cache path
 	Analyze Analyze       `command:"analyze" description:"Analyze a repository"`
 	Export  Export        `command:"export" description:"export the database to CSV"`
@@ -338,6 +339,10 @@ func main() {
 
 	cache := utils.IdentityCache{
 		Filename: "./cache.sqlite",
+	}
+
+	if len(opts.Verbosity) >= 1 {
+		fmt.Printf("%+v\n", opts)
 	}
 
 	if opts.Analyze.Enabled {
