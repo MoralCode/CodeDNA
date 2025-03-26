@@ -20,24 +20,6 @@ import (
 	"github.com/google/go-github/v69/github"
 )
 
-// https://stackoverflow.com/a/10030772/
-func Reverse(s string) string {
-	runes := []rune(s)
-	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
-		runes[i], runes[j] = runes[j], runes[i]
-	}
-	return string(runes)
-}
-
-func getLineageIDFromHashes(commit_hashes []string) string {
-	lineageID := ""
-
-	for _, element := range commit_hashes {
-		lineageID += string(element[0])
-	}
-	return lineageID
-}
-
 func getOriginUrlFromRepo(repo *git.Repository) (string, error) {
 	remote, err := repo.Remote("origin")
 	if err != nil {
@@ -72,8 +54,8 @@ func getLineageIDFromRepo(repo *git.Repository) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	lineageID := getLineageIDFromHashes(commit_hashes)
-	return Reverse(lineageID), nil
+	lineageID := LineageIDFromHashes(commit_hashes)
+	return lineageID.String(), nil
 }
 
 // isValidUrl tests a string to determine if it is a well-structured url or not.
@@ -164,11 +146,11 @@ func lineageIDFromGitHub(repourl string) string {
 
 	}
 
-	lineageID := getLineageIDFromHashes(commit_hashes)
+	lineageID := LineageIDFromHashes(commit_hashes)
 
 	// err = os.WriteFile(cacheFilename, d1, 0644)
 	// check(err)
-	return Reverse(lineageID)
+	return lineageID.String()
 }
 
 func lineageIDFromGitClone(repourl string, tempdir string) string {
