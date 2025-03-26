@@ -288,20 +288,17 @@ type Analyze struct {
 		Repository string `description:"The repository to analyze" required:"true"`
 		Nickname   string `description:"A nickname to assign to the new record"`
 	} ` positional-args:"yes"`
-	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
 }
 
 type Export struct {
 	Enabled bool   `hidden:"true" no-ini:"true"`
 	Path    string `long:"path" description:"The path to export to" default:"database.csv"`
-	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
 }
 
 type ImportCommand struct {
 	Enabled       bool   `hidden:"true" no-ini:"true"`
 	Path          string `long:"path" description:"The path to import from" required:"true"`
 	CloneExisting bool   `long:"clone-existing" description:"whether or not to clone a repository if it exists in the cache"`
-	// Opt2 int    `long:"opt2" description:"second opt" default:"10"`
 }
 
 type MainCmd struct {
