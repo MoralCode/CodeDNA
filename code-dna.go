@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -29,7 +30,7 @@ func getOriginUrlFromRepo(repo *git.Repository) (string, error) {
 	return remote.Config().URLs[0], nil
 }
 
-func getLineageIDFromRepo(repo *git.Repository) (string, error) {
+func getLineageIDFromRepo(repo *git.Repository, prefixLength uint8) (string, error) {
 	// ... retrieving the HEAD reference
 	ref, err := repo.Head()
 	if err != nil {
@@ -45,16 +46,17 @@ func getLineageIDFromRepo(repo *git.Repository) (string, error) {
 		return "", err
 	}
 
-	var commit_hashes []string
+	var commit_hashes []CommitHash
 
 	err = cIter.ForEach(func(c *object.Commit) error {
-		commit_hashes = append(commit_hashes, string(c.Hash.String()))
+		// here we convert tye type so we arent passing around a plumbing.Hash everywhere
+		commit_hashes = append(commit_hashes, CommitHash([]byte(c.Hash.String())))
 		return nil
 	})
 	if err != nil {
 		return "", err
 	}
-	lineageID := LineageIDFromHashes(commit_hashes)
+	lineageID := LineageIDFromHashes(commit_hashes, prefixLength)
 	return lineageID.String(), nil
 }
 
@@ -103,7 +105,7 @@ func repoOwnerAndNameFromURL(repourl string) (string, string) {
 	return owner, reponame
 }
 
-func lineageIDFromGitHub(repourl string) string {
+func lineageIDFromGitHub(repourl string, prefixLength uint8) string {
 
 	// TODO: maybe use  https://github.com/shurcooL/githubv4
 	if !isValidUrl(repourl) {
@@ -137,21 +139,23 @@ func lineageIDFromGitHub(repourl string) string {
 		opt.Page = resp.NextPage
 	}
 
-	var commit_hashes []string
+	var commit_hashes []CommitHash
 
 	for _, commit := range allCommits {
-		commit_hashes = append(commit_hashes, *commit.SHA)
+		hashbytes, err := hex.DecodeString(*commit.SHA)
+		CheckIfError(err)
+		commit_hashes = append(commit_hashes, CommitHash(hashbytes))
 
 	}
 
-	lineageID := LineageIDFromHashes(commit_hashes)
+	lineageID := LineageIDFromHashes(commit_hashes, prefixLength)
 
 	// err = os.WriteFile(cacheFilename, d1, 0644)
 	// check(err)
 	return lineageID.String()
 }
 
-func lineageIDFromGitClone(repourl string, tempdir string) string {
+func lineageIDFromGitClone(repourl string, tempdir string, prefixLength uint8) string {
 	repo, err := git.PlainClone(tempdir, true, &git.CloneOptions{
 		URL:               repourl,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
@@ -169,7 +173,7 @@ func lineageIDFromGitClone(repourl string, tempdir string) string {
 		CheckIfError(err)
 	}
 
-	lineageId, err := getLineageIDFromRepo(repo)
+	lineageId, err := getLineageIDFromRepo(repo, prefixLength)
 	CheckIfError(err)
 	return lineageId
 
@@ -245,7 +249,7 @@ func importManyRepos(filename string) ([]RepoImport, error) {
 	return repos, nil
 }
 
-func analyzeRepo(analysisPath string) (string, string, error) {
+func analyzeRepo(analysisPath string, prefixLength uint8) (string, string, error) {
 	fmt.Println("Starting analysis for", analysisPath)
 	var lineageID string
 	var source string
@@ -253,7 +257,7 @@ func analyzeRepo(analysisPath string) (string, string, error) {
 	// classify path type
 	if isValidUrl(analysisPath) {
 		fmt.Println("Querying from github...")
-		lineageID = lineageIDFromGitHub(analysisPath)
+		lineageID = lineageIDFromGitHub(analysisPath, prefixLength)
 		source = analysisPath
 	} else if _, err := os.Stat(analysisPath); errors.Is(err, os.ErrNotExist) {
 		return "", "", err
@@ -265,7 +269,7 @@ func analyzeRepo(analysisPath string) (string, string, error) {
 		repo, err := git.PlainOpen(analysisPath)
 		CheckIfError(err)
 
-		lineageID, err = getLineageIDFromRepo(repo)
+		lineageID, err = getLineageIDFromRepo(repo, prefixLength)
 		CheckIfError(err)
 		source, err = getOriginUrlFromRepo(repo)
 		CheckIfError(err)
@@ -340,7 +344,7 @@ func main() {
 
 	if opts.Analyze.Enabled {
 		analysisPath := opts.Analyze.Args.Repository
-		source, lineageID, err := analyzeRepo(analysisPath)
+		source, lineageID, err := analyzeRepo(analysisPath, 4)
 		if errors.Is(err, os.ErrNotExist) {
 			fmt.Println("Could not Analyze. Attempting fetch from cache...")
 			// assume its a name and fetch from cache
@@ -388,7 +392,7 @@ func main() {
 			err := os.MkdirAll(cloneDir, 0755)
 			CheckIfError(err)
 
-			lineageID := lineageIDFromGitClone(repo.RepoSource, cloneDir)
+			lineageID := lineageIDFromGitClone(repo.RepoSource, cloneDir, 4)
 
 			if !cache.Has(repo.RepoSource) {
 				newValue := utils.IdentityValue{
