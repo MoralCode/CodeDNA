@@ -77,7 +77,7 @@ func (tree *SimilarityTreeNode) Add(value string) {
 		return
 	} else if sharedPrefixLen == treeValueLen {
 		// if the value completely matches, traverse into child
-		lookupRune := rune(value[sharedPrefixLen+1])
+		lookupRune := rune(value[sharedPrefixLen])
 		lookupVal, hasLookup := tree.Children[lookupRune]
 		if hasLookup {
 			lookupVal.Add(value[sharedPrefixLen:])
