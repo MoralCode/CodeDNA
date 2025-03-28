@@ -26,7 +26,8 @@ func GetLongestPrefix(str1 string, str2 string) string {
 	length := len(str1)
 
 	if length != len(str2) {
-		log.Fatal("must check prefix on strings of equal length")
+		str1, str2, _, _ = TrimStringsToEqualLength(str1, str2)
+		length = len(str1)
 	}
 
 	if length == 0 {
