@@ -67,6 +67,7 @@ func (tree *SimilarityTreeNode) Split(split_length int) error {
 	return nil
 }
 
+// Add new nodes to the tree until the entire value has been added
 func (tree *SimilarityTreeNode) Add(value string) {
 
 	inValueLen := len(value)
@@ -76,7 +77,7 @@ func (tree *SimilarityTreeNode) Add(value string) {
 	if len(value) == 0 {
 		return
 	} else if sharedPrefixLen == treeValueLen {
-		// if the value completely matches, traverse into child
+		// if the value completely shares a prefix, traverse into child
 		lookupRune := rune(value[sharedPrefixLen])
 		lookupVal, hasLookup := tree.Children[lookupRune]
 		if hasLookup {
