@@ -47,6 +47,7 @@ func (tree *SimilarityTreeNode) Split(split_length int) error {
 			rune(tail.Value[0]): &tail,
 		},
 	}
+	tail.Parent = &head
 
 	// Step 2: Transfer Children
 	tail.Children = tree.Children
