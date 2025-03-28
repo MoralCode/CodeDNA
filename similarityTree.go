@@ -119,3 +119,13 @@ func (tree *SimilarityTreeNode) Add(value string) {
 func (tree *SimilarityTreeNode) IsLeaf() bool {
 	return len(tree.Children) == 0
 }
+
+// Get the "full value" of this node (its value, prefixed with the value of all of its parents)
+func (tree *SimilarityTreeNode) FullValue() string {
+	// base case: root node
+	if tree.Parent == nil {
+		return tree.Value
+	}
+
+	return tree.Parent.FullValue() + tree.Value
+}
