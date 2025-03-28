@@ -5,6 +5,22 @@ import (
 	"strings"
 )
 
+// Takes two strings and trims both to be of equal length
+// Returns: trimmed string 1, trimmed string 2, excess from string 1 (or empty), excess from string 2 (or empty)
+func TrimStringsToEqualLength(str1 string, str2 string) (string, string, string, string) {
+	len1 := len(str1)
+	len2 := len(str2)
+
+	if len1 == len2 {
+		return str1, str2, "", ""
+	} else if len1 > len2 {
+		return str1[:len2], str2, str1[len2:], ""
+	} else {
+		// string2 must be longer
+		return str1, str2[:len1], "", str2[len1:]
+	}
+}
+
 func GetLongestPrefix(str1 string, str2 string) string {
 
 	length := len(str1)

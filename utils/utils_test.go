@@ -25,3 +25,35 @@ func TestGetLongestPrefixMassive(t *testing.T) {
 		t.Errorf(`GetLongestPrefix() = %q, want %q`, msg, want)
 	}
 }
+
+func TestTrimStringsToEqualLength(t *testing.T) {
+	long := "abcdefgh"
+	short := "bcdef"
+	// same length
+	ina, inb := short, short
+	a, b, c, d := TrimStringsToEqualLength(ina, inb)
+	ex_a, ex_b, ex_c, ex_d := short, short, "", ""
+
+	if a != ex_a || b != ex_b || c != ex_c || d != ex_d {
+		t.Errorf(`TestTrimStringsToEqualLength(%q, %q) = %q,%q,%q,%q want %q,%q,%q,%q`, ina, inb, a, b, c, d, ex_a, ex_b, ex_c, ex_d)
+	}
+
+	// a longer
+	ina, inb = long, short
+	a, b, c, d = TrimStringsToEqualLength(ina, inb)
+	ex_a, ex_b, ex_c, ex_d = "abcde", short, "fgh", ""
+
+	if a != ex_a || b != ex_b || c != ex_c || d != ex_d {
+		t.Errorf(`TestTrimStringsToEqualLength(%q, %q) = %q,%q,%q,%q want %q,%q,%q,%q`, ina, inb, a, b, c, d, ex_a, ex_b, ex_c, ex_d)
+	}
+
+	// b longer
+	ina, inb = short, long
+	a, b, c, d = TrimStringsToEqualLength(ina, inb)
+	ex_a, ex_b, ex_c, ex_d = short, "abcde", "", "fgh"
+
+	if a != ex_a || b != ex_b || c != ex_c || d != ex_d {
+		t.Errorf(`TestTrimStringsToEqualLength(%q, %q) = %q,%q,%q,%q want %q,%q,%q,%q`, ina, inb, a, b, c, d, ex_a, ex_b, ex_c, ex_d)
+	}
+
+}
