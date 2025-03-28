@@ -1,6 +1,10 @@
 package main
 
-import "github.com/MoralCode/CodeDNA/utils"
+import (
+	"errors"
+
+	"github.com/MoralCode/CodeDNA/utils"
+)
 
 type SimilarityTreeNode struct {
 	Value string
@@ -14,6 +18,52 @@ type SimilarityTreeNode struct {
 type SimilarityTree struct {
 	Root   *SimilarityTreeNode
 	Leaves []SimilarityTreeNode
+}
+
+// Split a node's value into two nodes at the point specified by the given length
+func (tree *SimilarityTreeNode) Split(split_length int) error {
+	// Step 0. Prerequisites
+	if len(tree.Value) < 2 {
+		return errors.New("not enough characters in value to successfully split")
+	}
+
+	if split_length > len(tree.Value) {
+		return errors.New("split length too long to successfully split")
+	}
+
+	if split_length <= 0 {
+		return errors.New("split length too short to successfully split")
+	}
+
+	// Step 1: Create
+
+	tail := SimilarityTreeNode{
+		Value: tree.Value[split_length+1:],
+	}
+
+	head := SimilarityTreeNode{
+		Value: tree.Value[:split_length],
+		Children: map[rune]*SimilarityTreeNode{
+			rune(tail.Value[0]): &tail,
+		},
+	}
+
+	// Step 2: Transfer Children
+	tail.Children = tree.Children
+
+	// Step 3: Add HEAD (rootmost node in new pair) to chain
+	tree.Parent.Children[rune(tree.Value[0])] = &head
+	head.Parent = tree.Parent
+
+	// Step 4: connect detached chain to TAIL
+	for _, child := range tree.Parent.Children {
+		child.Parent = &tail
+	}
+
+	// Step 5: Cleanup
+	// jk golang is garbage collected so this should just happen :tm:
+
+	return nil
 }
 
 func (tree *SimilarityTreeNode) Add(value string) {
