@@ -80,7 +80,7 @@ func (tree *SimilarityTreeNode) Add(value string) {
 		lookupRune := rune(value[sharedPrefixLen])
 		lookupVal, hasLookup := tree.Children[lookupRune]
 		if hasLookup {
-			lookupVal.Add(value[sharedPrefixLen:])
+			(*lookupVal).Add(value[sharedPrefixLen:])
 		} else {
 			// no sub value exists, create it
 			node := SimilarityTreeNode{
