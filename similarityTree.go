@@ -127,3 +127,27 @@ func (tree *SimilarityTreeNode) FullValue() string {
 
 	return tree.Parent.FullValue() + tree.Value
 }
+
+// Get the "distance" of this node to the root
+func (tree *SimilarityTreeNode) Distance() int {
+	// base case: root node
+	if tree.Parent == nil {
+		return 0
+	}
+
+	return tree.Parent.Distance() + 1
+}
+
+func (tree *SimilarityTreeNode) DistanceTo(node *SimilarityTreeNode) int {
+	// base case: root node
+	if tree.Parent == nil {
+		return 0
+	}
+
+	// base case, target node found
+	if tree == node {
+		return 0
+	}
+
+	return tree.Parent.DistanceTo(node) + 1
+}

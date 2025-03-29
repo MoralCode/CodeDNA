@@ -165,3 +165,65 @@ func TestAddShorterCase(t *testing.T) {
 		t.Errorf(`Value for original child = %q, was not %q`, val.Value, expected)
 	}
 }
+
+func TestDistance(t *testing.T) {
+	childNode := SimilarityTreeNode{
+		Value:    "efgh",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	rootNode := SimilarityTreeNode{
+		Value:    "abcd",
+		Children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
+		Parent:   nil,
+	}
+
+	childNode.Parent = &rootNode
+
+	if d := rootNode.Distance(); d != 0 {
+		t.Errorf(`rootNode distance was: %q, but should have been %q`, d, 0)
+	}
+
+	if d := childNode.Distance(); d != 1 {
+		t.Errorf(`childNode distance was: %q, but should have been %q`, d, 1)
+	}
+
+}
+
+func TestDistanceTo(t *testing.T) {
+
+	childNode2 := SimilarityTreeNode{
+		Value:    "ijkl",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	childNode := SimilarityTreeNode{
+		Value:    "efgh",
+		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		Parent:   nil,
+	}
+
+	rootNode := SimilarityTreeNode{
+		Value:    "abcd",
+		Children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
+		Parent:   nil,
+	}
+
+	childNode.Parent = &rootNode
+	childNode2.Parent = &childNode
+
+	if d := childNode.DistanceTo(&childNode); d != 0 {
+		t.Errorf(`childNode distance to self was: %q, but should have been %q`, d, 0)
+	}
+
+	if d := childNode2.DistanceTo(&childNode); d != 1 {
+		t.Errorf(`childNode2 distance to childnode was: %q, but should have been %q`, d, 1)
+	}
+
+	if d := childNode2.DistanceTo(&rootNode); d != 2 {
+		t.Errorf(`childNode2 distance to root was: %q, but should have been %q`, d, 2)
+	}
+
+}
