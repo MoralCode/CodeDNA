@@ -65,14 +65,14 @@ func (tree *SimilarityTreeNode) Split(split_length int) (*SimilarityTreeNode, er
 }
 
 // Add new nodes to the tree until the entire value has been added
-func (tree *SimilarityTreeNode) Add(value string) *SimilarityTreeNode {
+func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, error) {
 
 	inValueLen := len(value)
 	treeValueLen := len(tree.Value)
 	sharedPrefixLen := len(utils.GetLongestPrefix(value, tree.Value))
 	// if no value left, base case
 	if len(value) == 0 {
-		return tree.Parent
+		return tree.Parent, nil
 	} else if sharedPrefixLen == treeValueLen {
 		// if the value completely shares a prefix, traverse into child
 		lookupRune := rune(value[sharedPrefixLen])
@@ -87,16 +87,20 @@ func (tree *SimilarityTreeNode) Add(value string) *SimilarityTreeNode {
 				Value:    value[sharedPrefixLen:],
 			}
 			tree.Children[lookupRune] = &node
-			return &node
+			return &node, nil
 		}
 	} else if sharedPrefixLen == inValueLen {
 		//if the incoming value ends before the end of the current value
 		// split
-		return (*tree).Split(sharedPrefixLen)
+		newLeaf, err := (*tree).Split(sharedPrefixLen)
+		return newLeaf, err
 	} else {
 		// if incoming value has a match ending in the middle of the current, length of tree value, we need to split it
 
-		(*tree).Split(sharedPrefixLen)
+		_, err := (*tree).Split(sharedPrefixLen)
+		if err != nil {
+			return nil, err
+		}
 
 		newSubValue := value[sharedPrefixLen:]
 		// create a new node representing the differing part of the value
@@ -107,7 +111,7 @@ func (tree *SimilarityTreeNode) Add(value string) *SimilarityTreeNode {
 		}
 		// add it to the now-split root node
 		(*tree).Children[rune(newSubValue[0])] = &node
-		return &node
+		return &node, nil
 	}
 	// lookupVal, hasLookup := tree.Children[lookupRune]
 	// short circuit: simple just add case if there is no child matching the first rune of the value
