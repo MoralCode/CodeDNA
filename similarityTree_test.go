@@ -30,6 +30,41 @@ func TestGetFullValue(t *testing.T) {
 	}
 }
 
+func TestGetFullValueTo(t *testing.T) {
+	childNode2 := SimilarityTreeNode{
+		Value:    "ijkl",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	childNode := SimilarityTreeNode{
+		Value:    "efgh",
+		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		Parent:   nil,
+	}
+
+	rootNode := SimilarityTreeNode{
+		Value:    "abcd",
+		Children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
+		Parent:   nil,
+	}
+
+	childNode.Parent = &rootNode
+	childNode2.Parent = &childNode
+
+	if d := childNode.FullValueTo(&childNode); d != "" {
+		t.Errorf(`childNode distance to self was: %q, but should have been %q`, d, "")
+	}
+
+	if d := childNode2.FullValueTo(&childNode); d != "ijkl" {
+		t.Errorf(`childNode2 distance to childnode was: %q, but should have been %q`, d, "ijkl")
+	}
+
+	if d := childNode2.FullValueTo(&rootNode); d != "efghijkl" {
+		t.Errorf(`childNode2 distance to root was: %q, but should have been %q`, d, "efghijkl")
+	}
+}
+
 func TestAddAppendCase(t *testing.T) {
 	// childNode := SimilarityTreeNode{
 	// 	Value:    "efgh",

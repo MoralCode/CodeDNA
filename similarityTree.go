@@ -128,6 +128,22 @@ func (tree *SimilarityTreeNode) FullValue() string {
 	return tree.Parent.FullValue() + tree.Value
 }
 
+// Get the "full value" of this node (its value, prefixed with the value of all of its parents)
+func (tree *SimilarityTreeNode) FullValueTo(node *SimilarityTreeNode) string {
+
+	//base case: we found the target node
+	if tree == node {
+		return ""
+	}
+
+	//other base case: root node
+	if tree.Parent == nil {
+		return tree.Value
+	}
+
+	return tree.Parent.FullValueTo(node) + tree.Value
+}
+
 // Get the "distance" of this node to the root
 func (tree *SimilarityTreeNode) Distance() int {
 	// base case: root node
