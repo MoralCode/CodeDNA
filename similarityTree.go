@@ -92,8 +92,7 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, error) {
 	} else if sharedPrefixLen == inValueLen {
 		//if the incoming value ends before the end of the current value
 		// split
-		newLeaf, err := (*tree).Split(sharedPrefixLen)
-		return newLeaf, err
+		return (*tree).Split(sharedPrefixLen)
 	} else {
 		// if incoming value has a match ending in the middle of the current, length of tree value, we need to split it
 
