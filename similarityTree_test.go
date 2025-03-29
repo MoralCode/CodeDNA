@@ -49,7 +49,11 @@ func TestAddAppendCase(t *testing.T) {
 		t.Errorf(`rootNode failed initial conditions: children should not be present, but some were`)
 	}
 
-	rootNode.Add("abcdefgh")
+	targetIdVal := "abcdefgh"
+	returnedChild, err := rootNode.Add(targetIdVal)
+	if err != nil {
+		t.Errorf(`Error: %q`, err)
+	}
 
 	if len(rootNode.Children) != 1 {
 		t.Errorf(`rootNode failed ending conditions: children should be present, but were not`)
@@ -69,6 +73,10 @@ func TestAddAppendCase(t *testing.T) {
 	if newChild.Parent != &rootNode {
 		t.Errorf(`Parent incorrectly set for new child`)
 	}
+
+	if fullVal := (*newChild).FullValue(); fullVal != targetIdVal {
+		t.Errorf(`full value %q did not match %q`, fullVal, targetIdVal)
+	}
 }
 
 func TestAddSplitCase(t *testing.T) {
@@ -83,7 +91,11 @@ func TestAddSplitCase(t *testing.T) {
 		t.Errorf(`rootNode failed initial conditions: children should not be present, but some were`)
 	}
 
-	(*rootNode).Add("abcdefgh")
+	targetIdVal := "abcdefgh"
+	returnedChild, err := (*rootNode).Add(targetIdVal)
+	if err != nil {
+		t.Errorf(`Error: %q`, err)
+	}
 
 	targetChildren := 2
 	if l := len((*rootNode).Children); l != targetChildren {
@@ -106,6 +118,10 @@ func TestAddSplitCase(t *testing.T) {
 	expected = "efgh"
 	if val := newChild; val.Value != expected {
 		t.Errorf(`Value for new child = %q, was not %q`, val.Value, expected)
+	}
+
+	if fullVal := (*newChild).FullValue(); fullVal != targetIdVal {
+		t.Errorf(`full value %q did not match %q`, fullVal, targetIdVal)
 	}
 
 	if newChild.Parent != rootNode {
