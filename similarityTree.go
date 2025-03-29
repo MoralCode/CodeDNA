@@ -23,7 +23,7 @@ type SimilarityTree struct {
 // Split a node's value into two nodes at the point specified by the given length
 func (tree *SimilarityTreeNode) Split(split_length int) error {
 	// Step 0. Prerequisites
-	if len(tree.Value) < 2 {
+	if len((*tree).Value) < 2 {
 		return errors.New("not enough characters in value to successfully split")
 	}
 
@@ -36,28 +36,25 @@ func (tree *SimilarityTreeNode) Split(split_length int) error {
 	}
 
 	// Step 1: Create
-
 	tail := SimilarityTreeNode{
-		Value: tree.Value[split_length+1:],
+		Value:  (*tree).Value[split_length:],
+		Parent: tree,
 	}
 
-	head := SimilarityTreeNode{
-		Value: tree.Value[:split_length],
-		Children: map[rune]*SimilarityTreeNode{
-			rune(tail.Value[0]): &tail,
-		},
+	newHeadValue := (*tree).Value[:split_length]
+	newHeadChildren := map[rune]*SimilarityTreeNode{
+		rune(tail.Value[0]): &tail,
 	}
-	tail.Parent = &head
 
 	// Step 2: Transfer Children
-	tail.Children = tree.Children
+	tail.Children = (*tree).Children
 
-	// Step 3: Add HEAD (rootmost node in new pair) to chain
-	tree.Parent.Children[rune(tree.Value[0])] = &head
-	head.Parent = tree.Parent
+	// Step 3: Update HEAD (the original node)
+	(*tree).Children = newHeadChildren
+	(*tree).Value = newHeadValue
 
 	// Step 4: connect detached chain to TAIL
-	for _, child := range tree.Parent.Children {
+	for _, child := range tail.Children {
 		child.Parent = &tail
 	}
 
