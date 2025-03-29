@@ -112,3 +112,32 @@ func TestAddSplitCase(t *testing.T) {
 		t.Errorf(`Parent incorrectly set for new child`)
 	}
 }
+
+func TestAddShorterCase(t *testing.T) {
+
+	rootNode := &SimilarityTreeNode{
+		Value:    "abcdfghi",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	if len((*rootNode).Children) != 0 {
+		t.Errorf(`rootNode failed initial conditions: children should not be present, but some were`)
+	}
+
+	(*rootNode).Add("abc")
+
+	targetChildren := 1
+	if l := len((*rootNode).Children); l != targetChildren {
+		t.Errorf(`rootNode failed ending conditions: %q should be present, but %q were actually`, targetChildren, l)
+	}
+
+	ogChild, exists := (*rootNode).Children[rune('d')]
+	if !exists {
+		t.Errorf("Expected child with key 'd', but it was not found")
+	}
+	expected := "dfghi"
+	if val := *ogChild; val.Value != expected {
+		t.Errorf(`Value for original child = %q, was not %q`, val.Value, expected)
+	}
+}

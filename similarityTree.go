@@ -92,6 +92,7 @@ func (tree *SimilarityTreeNode) Add(value string) {
 	} else if sharedPrefixLen == inValueLen {
 		//if the incoming value ends before the end of the current value
 		// split
+		(*tree).Split(sharedPrefixLen)
 
 		// TODO: log leaf
 	} else {
