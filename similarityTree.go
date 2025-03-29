@@ -16,8 +16,9 @@ type SimilarityTreeNode struct {
 }
 
 type SimilarityTree struct {
-	Root   *SimilarityTreeNode
-	Leaves []SimilarityTreeNode
+	Root *SimilarityTreeNode
+	// map source to the leaf node
+	Leaves map[string]*SimilarityTreeNode
 }
 
 // Split a node's value into two nodes at the point specified by the given length
@@ -166,4 +167,16 @@ func (tree *SimilarityTreeNode) DistanceTo(node *SimilarityTreeNode) int {
 	}
 
 	return tree.Parent.DistanceTo(node) + 1
+}
+
+func (graph *SimilarityTree) Add(source string, identifier string) error {
+
+	if _, has := graph.Leaves[source]; !has {
+		newNode, err := graph.Root.Add(identifier)
+		if err != nil {
+			return err
+		}
+		graph.Leaves[source] = newNode
+	}
+	return nil
 }
