@@ -77,6 +77,10 @@ func TestAddAppendCase(t *testing.T) {
 	if fullVal := (*newChild).FullValue(); fullVal != targetIdVal {
 		t.Errorf(`full value %q did not match %q`, fullVal, targetIdVal)
 	}
+
+	if returnedChild != newChild {
+		t.Errorf(`Returned Child is not the same`)
+	}
 }
 
 func TestAddSplitCase(t *testing.T) {
@@ -126,6 +130,10 @@ func TestAddSplitCase(t *testing.T) {
 
 	if newChild.Parent != rootNode {
 		t.Errorf(`Parent incorrectly set for new child`)
+	}
+
+	if returnedChild != newChild {
+		t.Errorf(`Returned Child is not the same`)
 	}
 }
 
