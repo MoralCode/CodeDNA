@@ -113,21 +113,6 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, error) {
 		(*tree).Children[rune(newSubValue[0])] = &node
 		return &node, nil
 	}
-	// lookupVal, hasLookup := tree.Children[lookupRune]
-	// short circuit: simple just add case if there is no child matching the first rune of the value
-	// if !hasLookup {
-	// 	node := SimilarityTreeNode{
-	// 		Parent:   tree,
-	// 		Children: map[rune]*SimilarityTreeNode{},
-	// 		Value:    value,
-	// 	}
-	// 	tree.Children[lookupRune] = &node
-	// } else {
-	// 	// if a key for the split already exists
-	// 	// check prefix length of the value
-
-	// }
-	// compare the first <number of chars in the node> to each branch currently in the tree and see where it should go
 }
 
 func (tree *SimilarityTreeNode) IsLeaf() bool {
