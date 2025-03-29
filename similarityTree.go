@@ -96,6 +96,19 @@ func (tree *SimilarityTreeNode) Add(value string) {
 		// TODO: log leaf
 	} else {
 		// if incoming value has a match ending in the middle of the current, length of tree value, we need to split it
+
+		(*tree).Split(sharedPrefixLen)
+
+		newSubValue := value[sharedPrefixLen:]
+		// create a new node representing the differing part of the value
+		node := SimilarityTreeNode{
+			Parent:   tree,
+			Children: map[rune]*SimilarityTreeNode{}, //empty map
+			Value:    newSubValue,
+		}
+		// add it to the now-split root node
+		(*tree).Children[rune(newSubValue[0])] = &node
+
 	}
 	// lookupVal, hasLookup := tree.Children[lookupRune]
 	// short circuit: simple just add case if there is no child matching the first rune of the value
