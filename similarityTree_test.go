@@ -262,3 +262,51 @@ func TestDistanceTo(t *testing.T) {
 	}
 
 }
+
+func TestCommonAncestor(t *testing.T) {
+
+	childNode2 := SimilarityTreeNode{
+		Value:    "ijkl",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	childNode := SimilarityTreeNode{
+		Value:    "efgh",
+		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		Parent:   nil,
+	}
+
+	childNodeA := SimilarityTreeNode{
+		Value:    "wxyz",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	rootNode := SimilarityTreeNode{
+		Value: "abcd",
+		Children: map[rune]*SimilarityTreeNode{
+			rune('e'): &childNode,
+			rune('w'): &childNodeA,
+		},
+		Parent: nil,
+	}
+
+	childNode.Parent = &rootNode
+	childNodeA.Parent = &rootNode
+	childNode2.Parent = &childNode
+
+	test := SimilarityTree{
+		Root:   &rootNode,
+		Leaves: map[string]*SimilarityTreeNode{},
+	}
+
+	if a, err := test.CommonAncestor(&childNode, &childNode2); a != &childNode && err != nil {
+		t.Errorf(`common ancestor between childNode and childnode2 was node with value: %q, but should have been node with value %q`, a.Value, childNode.Value)
+	}
+
+	if a, err := test.CommonAncestor(&childNodeA, &childNode2); a != &rootNode && err != nil {
+		t.Errorf(`common ancestor between childNode and childnode2 was node with value: %q, but should have been node with value %q`, a.Value, rootNode.Value)
+	}
+
+}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/MoralCode/CodeDNA/utils"
 )
@@ -169,6 +170,15 @@ func (tree *SimilarityTreeNode) DistanceTo(node *SimilarityTreeNode) int {
 	return tree.Parent.DistanceTo(node) + 1
 }
 
+func (tree *SimilarityTreeNode) parentChain() []*SimilarityTreeNode {
+	// base case: root node
+	if tree.Parent == nil {
+		return []*SimilarityTreeNode{tree}
+	}
+
+	return append([]*SimilarityTreeNode{tree}, tree.Parent.parentChain()...)
+}
+
 func (graph *SimilarityTree) Add(source string, identifier string) error {
 
 	if _, has := graph.Leaves[source]; !has {
@@ -179,4 +189,20 @@ func (graph *SimilarityTree) Add(source string, identifier string) error {
 		graph.Leaves[source] = newNode
 	}
 	return nil
+}
+
+// Find the closest common ancestor
+func (graph *SimilarityTree) CommonAncestor(a *SimilarityTreeNode, b *SimilarityTreeNode) (*SimilarityTreeNode, error) {
+
+	chain := a.parentChain()
+
+	parent := b
+
+	for parent != nil {
+		if idx := slices.Index(chain, parent); idx > -1 {
+			return parent, nil
+		}
+		parent = parent.Parent
+	}
+	return nil, errors.New("no shared parentage between the nodes")
 }
