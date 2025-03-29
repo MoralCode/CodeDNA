@@ -21,18 +21,18 @@ type SimilarityTree struct {
 }
 
 // Split a node's value into two nodes at the point specified by the given length
-func (tree *SimilarityTreeNode) Split(split_length int) error {
+func (tree *SimilarityTreeNode) Split(split_length int) (*SimilarityTreeNode, error) {
 	// Step 0. Prerequisites
 	if len((*tree).Value) < 2 {
-		return errors.New("not enough characters in value to successfully split")
+		return nil, errors.New("not enough characters in value to successfully split")
 	}
 
 	if split_length > len(tree.Value) {
-		return errors.New("split length too long to successfully split")
+		return nil, errors.New("split length too long to successfully split")
 	}
 
 	if split_length <= 0 {
-		return errors.New("split length too short to successfully split")
+		return nil, errors.New("split length too short to successfully split")
 	}
 
 	// Step 1: Create
@@ -61,7 +61,7 @@ func (tree *SimilarityTreeNode) Split(split_length int) error {
 	// Step 5: Cleanup
 	// jk golang is garbage collected so this should just happen :tm:
 
-	return nil
+	return &tail, nil
 }
 
 // Add new nodes to the tree until the entire value has been added
