@@ -270,12 +270,17 @@ type ImportCommand struct {
 	CloneExisting bool   `long:"clone-existing" description:"whether or not to clone a repository if it exists in the cache"`
 }
 
+type SimilarityCommand struct {
+	Enabled bool `hidden:"true" no-ini:"true"`
+}
+
 type MainCmd struct {
-	Verbosity []bool        `short:"v" long:"verbose" description:"Show verbose debug information"`
-	CachePath string        `long:"cachepath" default:"cache.sqlite" description:"The path to the cache database to use"`
-	Analyze   Analyze       `command:"analyze" description:"Analyze a repository"`
-	Export    Export        `command:"export" description:"export the database to CSV"`
-	Import    ImportCommand `command:"import" description:"import from CSV"`
+	Verbosity  []bool            `short:"v" long:"verbose" description:"Show verbose debug information"`
+	CachePath  string            `long:"cachepath" default:"cache.sqlite" description:"The path to the cache database to use"`
+	Analyze    Analyze           `command:"analyze" description:"Analyze a repository"`
+	Export     Export            `command:"export" description:"export the database to CSV"`
+	Import     ImportCommand     `command:"import" description:"import from CSV"`
+	Similarity SimilarityCommand `command:"similarity" description:"run repo similarity report"`
 }
 
 // Detect when the subcommand is used.
@@ -288,6 +293,10 @@ func (c *Export) Execute(args []string) error {
 	return nil
 }
 func (c *ImportCommand) Execute(args []string) error {
+	c.Enabled = true
+	return nil
+}
+func (c *SimilarityCommand) Execute(args []string) error {
 	c.Enabled = true
 	return nil
 }
@@ -377,6 +386,47 @@ func main() {
 	if opts.Export.Enabled {
 		fmt.Println("Exporting db to", opts.Export.Path)
 		cache.ExportAllToCSV(opts.Export.Path)
+	}
+
+	if opts.Similarity.Enabled {
+		tree := NewSimilarityTree()
+
+		a, err := cache.GetByNickname("FossifyGallery")
+		CheckIfError(err)
+		b, err := cache.GetByNickname("SimpleGallery")
+		CheckIfError(err)
+		c, err := cache.GetByNickname("scc")
+		CheckIfError(err)
+
+		tree.Add(a.URL, a.LineageID)
+		tree.Add(b.URL, b.LineageID)
+		tree.Add(c.URL, c.LineageID)
+
+		fmt.Println(tree.Leaves)
+		commonAncestor, err := tree.CommonAncestor(tree.Leaves[a.URL], tree.Leaves[b.URL])
+		CheckIfError(err)
+		fmt.Println(commonAncestor.FullValueTo(tree.Root))
+		fmt.Println("===")
+		fmt.Println(tree.Leaves[a.URL].FullValueTo(commonAncestor))
+		fmt.Println("===")
+		fmt.Println(tree.Leaves[b.URL].FullValueTo(commonAncestor))
+		fmt.Println("===")
+
+		commonAncestor, err = tree.CommonAncestor(tree.Leaves[a.URL], tree.Leaves[c.URL])
+		CheckIfError(err)
+		fmt.Println(&commonAncestor, &tree.Root)
+
+		// fmt.Println(tree.Leaves[c.URL].FullValue())
+
+		sc1, err := tree.SimilarityScore(a.URL, b.URL)
+		CheckIfError(err)
+		sc2, err := tree.SimilarityScore(a.URL, c.URL)
+		CheckIfError(err)
+		fmt.Printf("Fossify %X\n", sc1)
+		fmt.Printf("unrelated %X\n", sc2)
+
+		// sanity check with prefix lengths
+
 	}
 
 }
