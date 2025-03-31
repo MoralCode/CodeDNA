@@ -101,6 +101,10 @@ func LineageIDFromHashes(commit_hashes []CommitHash, prefixLength uint8) *Lineag
 		prefix := firstbyte >> (8 - prefixLength)
 		lineageID = append(lineageID, prefix)
 	}
+	lineageID, err := AssembleBytesFromNibbles(lineageID)
+	if err != nil {
+		fmt.Println("Error")
+	}
 	return &LineageID{
 		idData:       ReverseNibbles(lineageID),
 		prefixLength: prefixLength,
