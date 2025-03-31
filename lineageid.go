@@ -68,6 +68,27 @@ func ReverseBytes(s []byte) []byte {
 	}
 	return data
 }
+
+func AssembleBytesFromNibbles(nibbles []uint8) ([]byte, error) {
+	if len(nibbles) == 0 {
+		return nil, nil
+	}
+
+	bytes := make([]byte, (len(nibbles)+1)/2)
+	for i := 0; i < len(nibbles); i++ {
+		if nibbles[i] > 0xF {
+			return nil, errors.New("invalid nibble value, must be in range 0-15")
+		}
+		if i%2 == 0 {
+			bytes[i/2] = nibbles[i] << 4
+		} else {
+			bytes[i/2] |= nibbles[i]
+		}
+	}
+
+	return bytes, nil
+}
+
 func LineageIDFromHashes(commit_hashes []CommitHash, prefixLength uint8) *LineageID {
 	lineageID := []byte{}
 
