@@ -102,7 +102,7 @@ func LineageIDFromHashes(commit_hashes []CommitHash, prefixLength uint8) *Lineag
 		lineageID = append(lineageID, prefix)
 	}
 	return &LineageID{
-		idData:       ReverseBytes(lineageID),
+		idData:       ReverseNibbles(lineageID),
 		prefixLength: prefixLength,
 	}
 }
