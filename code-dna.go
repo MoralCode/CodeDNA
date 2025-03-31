@@ -49,8 +49,14 @@ func getLineageIDFromRepo(repo *git.Repository, prefixLength uint8) (string, err
 	var commit_hashes []CommitHash
 
 	err = cIter.ForEach(func(c *object.Commit) error {
-		// here we convert tye type so we arent passing around a plumbing.Hash everywhere
-		commit_hashes = append(commit_hashes, CommitHash([]byte(c.Hash.String())))
+		// here we convert the type so we arent passing around a plumbing.Hash everywhere
+		cache := []byte{}
+		// fmt.Println(c.Hash.String())
+		for _, b := range c.Hash {
+			cache = append(cache, b)
+		}
+		// fmt.Println(hex.EncodeToString(cache))
+		commit_hashes = append(commit_hashes, CommitHash(cache))
 		return nil
 	})
 	if err != nil {
