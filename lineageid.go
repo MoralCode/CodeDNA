@@ -102,12 +102,8 @@ func LineageIDFromHashes(commit_hashes []CommitHash, prefixLength uint8) *Lineag
 		prefix := firstbyte >> (8 - prefixLength)
 		lineageID = append(lineageID, prefix)
 	}
-	lineageID, err := AssembleBytesFromNibbles(lineageID)
-	if err != nil {
-		fmt.Println("Error")
-	}
 	return &LineageID{
-		idData:       ReverseNibbles(lineageID),
+		idData:       ReverseBytes(lineageID),
 		prefixLength: prefixLength,
 	}
 }
@@ -117,7 +113,17 @@ func (lineageID *LineageID) String() string {
 }
 
 func (lineageID *LineageID) StringHex() string {
-	return hex.EncodeToString(lineageID.idData)
+	l := len(lineageID.idData)
+	lineageIDBytes, err := AssembleBytesFromNibbles(lineageID.idData)
+	if err != nil {
+		fmt.Println("Error")
+	}
+	if l%2 == 0 {
+		return hex.EncodeToString(lineageIDBytes)
+	} else {
+		return hex.EncodeToString(lineageIDBytes)[:l]
+	}
+
 }
 
 func (lineageID *LineageID) StringB64() string {
