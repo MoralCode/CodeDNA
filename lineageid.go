@@ -27,14 +27,47 @@ func ReverseString(s string) string {
 	return string(runes)
 }
 
-func ReverseBytes(s []byte) []byte {
+func ReverseBits(s []byte) []byte {
 	data := []byte(s)
 	for i, j := 0, len(data)-1; i < j; i, j = i+1, j-1 {
 		data[i], data[j] = bits.Reverse8(data[j]), bits.Reverse8(data[i])
 	}
+	// handle odd length inputs
+	if len(s)%2 != 0 {
+		middle := (len(s) - 1) / 2
+		data[middle] = bits.Reverse8(data[middle])
+	}
 	return data
 }
 
+func ReverseNibbles(s []byte) []byte {
+	data := []byte(s)
+	for i, j := 0, len(data)-1; i < j; i, j = i+1, j-1 {
+		data[i], data[j] = ReverseNibble(data[j]), ReverseNibble(data[i])
+	}
+	// handle odd length inputs
+	if len(s)%2 != 0 {
+		middle := (len(s) - 1) / 2
+		data[middle] = ReverseNibble(data[middle])
+	}
+	return data
+}
+
+func ReverseNibble(b byte) byte {
+	end := b >> 4
+	start := b << 4
+
+	return start | end
+
+}
+
+func ReverseBytes(s []byte) []byte {
+	data := []byte(s)
+	for i, j := 0, len(data)-1; i < j; i, j = i+1, j-1 {
+		data[i], data[j] = data[j], data[i]
+	}
+	return data
+}
 func LineageIDFromHashes(commit_hashes []CommitHash, prefixLength uint8) *LineageID {
 	lineageID := []byte{}
 
