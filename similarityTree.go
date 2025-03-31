@@ -18,12 +18,6 @@ type SimilarityTreeNode struct {
 	// [16]*SimilarityTree
 }
 
-type SimilarityTree struct {
-	Root *SimilarityTreeNode
-	// map source to the leaf node
-	Leaves map[string]*SimilarityTreeNode
-}
-
 // Split a node's value into two nodes at the point specified by the given length
 func (tree *SimilarityTreeNode) Split(split_length int) (*SimilarityTreeNode, error) {
 	// Step 0. Prerequisites
@@ -250,20 +244,8 @@ func (tree *SimilarityTreeNode) parentChain() []*SimilarityTreeNode {
 	return append([]*SimilarityTreeNode{tree}, tree.Parent.parentChain()...)
 }
 
-func (graph *SimilarityTree) Add(source string, identifier string) error {
-
-	if _, has := graph.Leaves[source]; !has {
-		newNode, err := graph.Root.Add(identifier)
-		if err != nil {
-			return err
-		}
-		graph.Leaves[source] = newNode
-	}
-	return nil
-}
-
 // Find the closest common ancestor
-func (graph *SimilarityTree) CommonAncestor(a *SimilarityTreeNode, b *SimilarityTreeNode) (*SimilarityTreeNode, error) {
+func (a *SimilarityTreeNode) CommonAncestorWith(b *SimilarityTreeNode) (*SimilarityTreeNode, error) {
 
 	chain := a.parentChain()
 
@@ -278,29 +260,17 @@ func (graph *SimilarityTree) CommonAncestor(a *SimilarityTreeNode, b *Similarity
 	return nil, errors.New("no shared parentage between the nodes")
 }
 
-func NewSimilarityTree() SimilarityTree {
-	return SimilarityTree{
-		Root: &SimilarityTreeNode{
-			Value:    "",
-			Children: map[rune]*SimilarityTreeNode{},
-			Parent:   nil,
-		},
-		Leaves: map[string]*SimilarityTreeNode{},
+func NewSimilarityTreeNode() SimilarityTreeNode {
+	return SimilarityTreeNode{
+		Value:    "",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
 	}
 }
 
-func (graph *SimilarityTree) SimilarityScore(source1 string, source2 string) (int, error) {
-	source1Node, s1Exists := graph.Leaves[source1]
-	if !s1Exists {
-		return -1, errors.New("provided source" + source1 + "does not have a known leaf in this tree")
-	}
+func (root *SimilarityTreeNode) SimilarityScore(source1Node *SimilarityTreeNode, source2Node *SimilarityTreeNode) (int, error) {
 
-	source2Node, s2Exists := graph.Leaves[source2]
-	if !s2Exists {
-		return -1, errors.New("provided source" + source2 + "does not have a known leaf in this tree")
-	}
-
-	commonAncestor, err := graph.CommonAncestor(source1Node, source2Node)
+	commonAncestor, err := source1Node.CommonAncestorWith(source2Node)
 	if err != nil {
 		return -1, errors.Join(errors.New("failed to calculate common ancestor"), err)
 	}
@@ -310,7 +280,7 @@ func (graph *SimilarityTree) SimilarityScore(source1 string, source2 string) (in
 	source1IndependentDistance := len(source1Node.FullValueTo(commonAncestor))
 	source2IndependentDistance := len(source2Node.FullValueTo(commonAncestor))
 
-	fmt.Println(len(commonAncestor.FullValueTo(graph.Root)))
+	fmt.Println(len(commonAncestor.FullValueTo(root)))
 	return source1IndependentDistance + source2IndependentDistance, nil
 
 }

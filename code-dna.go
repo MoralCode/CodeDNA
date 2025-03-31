@@ -389,7 +389,7 @@ func main() {
 	}
 
 	if opts.Similarity.Enabled {
-		tree := NewSimilarityTree()
+		tree := NewSimilarityTreeNode()
 
 		a, err := cache.GetByNickname("FossifyGallery")
 		CheckIfError(err)
@@ -398,29 +398,53 @@ func main() {
 		c, err := cache.GetByNickname("scc")
 		CheckIfError(err)
 
-		tree.Add(a.URL, a.LineageID)
-		tree.Add(b.URL, b.LineageID)
-		tree.Add(c.URL, c.LineageID)
+		if a.LineageID == "" {
+			fmt.Println("a is empty")
+		}
 
-		fmt.Println(tree.Leaves)
-		commonAncestor, err := tree.CommonAncestor(tree.Leaves[a.URL], tree.Leaves[b.URL])
+		if b.LineageID == "" {
+			fmt.Println("b is empty")
+		}
+
+		if c.LineageID == "" {
+			fmt.Println("c is empty")
+		}
+
+		tree.Add(a.LineageID)
+		tree.Add(b.LineageID)
+		tree.Add(c.LineageID)
+
+		tree.Print(0)
+		// TODO: have add return the added value
+
+		source1Node, err := tree.Find(a.LineageID)
 		CheckIfError(err)
-		fmt.Println(commonAncestor.FullValueTo(tree.Root))
+
+		source2Node, err := tree.Find(b.LineageID)
+		CheckIfError(err)
+
+		source3Node, err := tree.Find(c.LineageID)
+		CheckIfError(err)
+
+		// fmt.Println(tree.Leaves)
+		commonAncestor, err := source1Node.CommonAncestorWith(source2Node)
+		CheckIfError(err)
+		fmt.Println(commonAncestor.FullValueTo(&tree))
 		fmt.Println("===")
-		fmt.Println(tree.Leaves[a.URL].FullValueTo(commonAncestor))
+		fmt.Println(source1Node.FullValueTo(commonAncestor))
 		fmt.Println("===")
-		fmt.Println(tree.Leaves[b.URL].FullValueTo(commonAncestor))
+		fmt.Println(source2Node.FullValueTo(commonAncestor))
 		fmt.Println("===")
 
-		commonAncestor, err = tree.CommonAncestor(tree.Leaves[a.URL], tree.Leaves[c.URL])
+		commonAncestor, err = source1Node.CommonAncestorWith(source3Node)
 		CheckIfError(err)
-		fmt.Println(&commonAncestor, &tree.Root)
+		fmt.Println(&commonAncestor, &tree)
 
 		// fmt.Println(tree.Leaves[c.URL].FullValue())
 
-		sc1, err := tree.SimilarityScore(a.URL, b.URL)
+		sc1, err := tree.SimilarityScore(source1Node, source2Node)
 		CheckIfError(err)
-		sc2, err := tree.SimilarityScore(a.URL, c.URL)
+		sc2, err := tree.SimilarityScore(source1Node, source3Node)
 		CheckIfError(err)
 		fmt.Printf("Fossify %X\n", sc1)
 		fmt.Printf("unrelated %X\n", sc2)

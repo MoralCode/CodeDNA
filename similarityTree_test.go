@@ -350,16 +350,11 @@ func TestCommonAncestor(t *testing.T) {
 	childNodeA.Parent = &rootNode
 	childNode2.Parent = &childNode
 
-	test := SimilarityTree{
-		Root:   &rootNode,
-		Leaves: map[string]*SimilarityTreeNode{},
-	}
-
-	if a, err := test.CommonAncestor(&childNode, &childNode2); a != &childNode && err != nil {
+	if a, err := childNode.CommonAncestorWith(&childNode2); a != &childNode && err != nil {
 		t.Errorf(`common ancestor between childNode and childnode2 was node with value: %q, but should have been node with value %q`, a.Value, childNode.Value)
 	}
 
-	if a, err := test.CommonAncestor(&childNodeA, &childNode2); a != &rootNode && err != nil {
+	if a, err := childNodeA.CommonAncestorWith(&childNode2); a != &rootNode && err != nil {
 		t.Errorf(`common ancestor between childNode and childnode2 was node with value: %q, but should have been node with value %q`, a.Value, rootNode.Value)
 	}
 
