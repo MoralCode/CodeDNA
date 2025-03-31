@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 
 	"github.com/MoralCode/CodeDNA/utils"
@@ -205,4 +206,41 @@ func (graph *SimilarityTree) CommonAncestor(a *SimilarityTreeNode, b *Similarity
 		parent = parent.Parent
 	}
 	return nil, errors.New("no shared parentage between the nodes")
+}
+
+func NewSimilarityTree() SimilarityTree {
+	return SimilarityTree{
+		Root: &SimilarityTreeNode{
+			Value:    "",
+			Children: map[rune]*SimilarityTreeNode{},
+			Parent:   nil,
+		},
+		Leaves: map[string]*SimilarityTreeNode{},
+	}
+}
+
+func (graph *SimilarityTree) SimilarityScore(source1 string, source2 string) (int, error) {
+	source1Node, s1Exists := graph.Leaves[source1]
+	if !s1Exists {
+		return -1, errors.New("provided source" + source1 + "does not have a known leaf in this tree")
+	}
+
+	source2Node, s2Exists := graph.Leaves[source2]
+	if !s2Exists {
+		return -1, errors.New("provided source" + source2 + "does not have a known leaf in this tree")
+	}
+
+	commonAncestor, err := graph.CommonAncestor(source1Node, source2Node)
+	if err != nil {
+		return -1, errors.Join(errors.New("failed to calculate common ancestor"), err)
+	}
+	// source1IndependentDistance := source1Node.DistanceTo(commonAncestor)
+	// source2IndependentDistance := source2Node.DistanceTo(commonAncestor)
+
+	source1IndependentDistance := len(source1Node.FullValueTo(commonAncestor))
+	source2IndependentDistance := len(source2Node.FullValueTo(commonAncestor))
+
+	fmt.Println(len(commonAncestor.FullValueTo(graph.Root)))
+	return source1IndependentDistance + source2IndependentDistance, nil
+
 }
