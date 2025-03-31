@@ -206,7 +206,7 @@ func importManyRepos(filename string) ([]RepoImport, error) {
 	for _, element := range data {
 		repos = append(repos, RepoImport{
 			RepoSource: element[0],
-			Nickname:   element[1],
+			Nickname:   strings.TrimSpace(element[1]),
 		})
 	}
 	return repos, nil
