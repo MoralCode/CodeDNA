@@ -6,15 +6,7 @@ import (
 	"testing"
 )
 
-func TestFromHashes(t *testing.T) {
-	hashes := []string{
-		"c157c5bb882fffe4932853ee413a36af63c337d9",
-		"75288f635132b98b366e6993be945f3c9ddf8f05",
-		"3cafb499963675d22f44007c91b906e77d45dfb5",
-		"e48d65529880ebd2d061c8bfa13e78b74c411204",
-		"e3a4055fb9d8afe217d73591bfb2724662fa86fc",
-		"94e7ba5ba88de06ad0943bcb6facf12f9a9c2eee",
-	}
+func hashesFromStrings(hashes []string) []CommitHash {
 	hashdata := []CommitHash{}
 
 	for _, v := range hashes {
@@ -24,6 +16,19 @@ func TestFromHashes(t *testing.T) {
 		}
 		hashdata = append(hashdata, CommitHash(h))
 	}
+	return hashdata
+}
+
+func TestFromHashes(t *testing.T) {
+	hashes := []string{
+		"c157c5bb882fffe4932853ee413a36af63c337d9",
+		"75288f635132b98b366e6993be945f3c9ddf8f05",
+		"3cafb499963675d22f44007c91b906e77d45dfb5",
+		"e48d65529880ebd2d061c8bfa13e78b74c411204",
+		"e3a4055fb9d8afe217d73591bfb2724662fa86fc",
+		"94e7ba5ba88de06ad0943bcb6facf12f9a9c2eee",
+	}
+	hashdata := hashesFromStrings(hashes)
 
 	id := LineageIDFromHashes(hashdata, 4)
 	if id.StringHex() != "9ee37c" {
