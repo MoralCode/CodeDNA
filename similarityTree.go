@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/MoralCode/CodeDNA/utils"
 )
@@ -177,6 +178,27 @@ func (tree *SimilarityTreeNode) FullValue() string {
 	}
 
 	return tree.Parent.FullValue() + tree.Value
+}
+
+// Get the "full value" of this node (its value, prefixed with the value of all of its parents)
+func (tree *SimilarityTreeNode) Print(level int) {
+
+	indents := strings.Repeat("\t", level)
+	valLen := len(tree.Value)
+
+	val := ""
+	if valLen == 0 {
+		val = "<empty value>"
+	} else if valLen < 10 {
+		val = tree.Value
+	} else {
+		val = tree.Value[0:5] + "..." + tree.Value[valLen-5:]
+	}
+	fmt.Println(indents+"Value:", val)
+	for k, v := range tree.Children {
+		fmt.Println(indents + "Child " + string(k) + ":")
+		v.Print(level + 1)
+	}
 }
 
 // Get the "full value" of this node (its value, prefixed with the value of all of its parents)
