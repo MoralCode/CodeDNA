@@ -117,6 +117,49 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, error) {
 	}
 }
 
+// Traverse down the tree to find the leaf node representing the given value
+func (tree *SimilarityTreeNode) Find(value string) (*SimilarityTreeNode, error) {
+	inValueLen := len(value)
+	treeValueLen := len(tree.Value)
+	// sharedPrefix :=
+	sharedPrefixLen := len(utils.GetLongestPrefix(value, tree.Value))
+	maxPossiblePrefixLen := min(inValueLen, treeValueLen)
+
+	if inValueLen == 0 || sharedPrefixLen == 0 {
+		// value found (prior node)
+		// dont try and return nil if we called this on the root node (which has no parent)\
+		if tree.Parent != nil {
+			return tree.Parent, nil
+		} else {
+			return nil, errors.New("could not find node. you attempted to search for an empty value on the root node. this is an error")
+		}
+	} else if sharedPrefixLen < maxPossiblePrefixLen {
+		return nil, errors.New("node does not exist. matches stopped in the middle of a node")
+
+	} else if sharedPrefixLen == maxPossiblePrefixLen {
+		if inValueLen < treeValueLen {
+			// perfect match for part of this node
+			return nil, errors.New("node does not exist. search key was exhausted in the middle of a node")
+
+		} else if inValueLen == treeValueLen {
+			// this node matches the value perfectly with no leftovers. search complete
+			return tree, nil
+
+		} else if inValueLen > treeValueLen {
+			// search limited by node value, traverse into children
+			lookupRune := rune(value[sharedPrefixLen])
+			lookupVal, hasLookup := tree.Children[lookupRune]
+			if hasLookup {
+				return (*lookupVal).Find(value[sharedPrefixLen:])
+			} else {
+				// no sub value exists, error
+				return nil, errors.New("node does not exist. child could not be found")
+			}
+		}
+	}
+	return nil, errors.New("search finished without result")
+}
+
 func (tree *SimilarityTreeNode) IsLeaf() bool {
 	return len(tree.Children) == 0
 }

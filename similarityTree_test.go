@@ -201,6 +201,60 @@ func TestAddShorterCase(t *testing.T) {
 	}
 }
 
+func TestFind(t *testing.T) {
+	childNode2 := SimilarityTreeNode{
+		Value:    "ijkl",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	childNode := SimilarityTreeNode{
+		Value:    "efgh",
+		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		Parent:   nil,
+	}
+
+	childNodeA := SimilarityTreeNode{
+		Value:    "wxyz",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	rootNode := SimilarityTreeNode{
+		Value: "abcd",
+		Children: map[rune]*SimilarityTreeNode{
+			rune('e'): &childNode,
+			rune('w'): &childNodeA,
+		},
+		Parent: nil,
+	}
+
+	childNode.Parent = &rootNode
+	childNodeA.Parent = &rootNode
+	childNode2.Parent = &childNode
+
+	if d, err := rootNode.Find("abcd"); d != &rootNode || err != nil {
+		t.Errorf(`find exact value of root node returned node with value %q, but should have been node with value %q`, d.Value, rootNode.Value)
+	}
+
+	if d, err := rootNode.Find("abcde"); d != nil || err == nil {
+		t.Errorf(`find value after root node returned node with value %q, but should have been an error`, d.Value)
+	}
+
+	if d, err := rootNode.Find("abcdehgf"); d != nil || err == nil {
+		t.Errorf(`find value when matches stop partway returned value %q, but should have been an error`, d.Value)
+	}
+
+	if d, err := rootNode.Find("abcdihgf"); d != nil || err == nil {
+		t.Errorf(`find value when matches stop at node boundary returned value %q, but should have been an error`, d.Value)
+	}
+
+	if d, err := rootNode.Find("abcdwxyz"); d != &childNodeA || err != nil {
+		t.Errorf(`find value of child returned node with value %q, but should have been node with value %q`, d.Value, childNodeA.Value)
+	}
+
+}
+
 func TestDistance(t *testing.T) {
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
