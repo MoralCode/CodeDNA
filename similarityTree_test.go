@@ -220,7 +220,7 @@ func TestFind(t *testing.T) {
 		Parent:   nil,
 	}
 
-	rootNode := SimilarityTreeNode{
+	rootValueNode := SimilarityTreeNode{
 		Value: "abcd",
 		Children: map[rune]*SimilarityTreeNode{
 			rune('e'): &childNode,
@@ -229,12 +229,25 @@ func TestFind(t *testing.T) {
 		Parent: nil,
 	}
 
-	childNode.Parent = &rootNode
-	childNodeA.Parent = &rootNode
-	childNode2.Parent = &childNode
+	rootNode := SimilarityTreeNode{
+		Value: "",
+		Children: map[rune]*SimilarityTreeNode{
+			rune('a'): &rootValueNode,
+		},
+		Parent: nil,
+	}
 
-	if d, err := rootNode.Find("abcd"); d != &rootNode || err != nil {
-		t.Errorf(`find exact value of root node returned node with value %q, but should have been node with value %q`, d.Value, rootNode.Value)
+	childNode.Parent = &rootNode
+	childNodeA.Parent = &rootValueNode
+	childNode2.Parent = &childNode
+	rootValueNode.Parent = &rootNode
+
+	if d, err := rootNode.Find(""); d != &rootNode || err != nil {
+		t.Errorf(`find exact value of root node (empty) returned node with value %q, but should have been node with value %q`, d.Value, rootNode.Value)
+	}
+
+	if d, err := rootNode.Find("abcd"); d != &rootValueNode || err != nil {
+		t.Errorf(`find exact value of root node returned node with value %q, but should have been node with value %q`, d.Value, rootValueNode.Value)
 	}
 
 	if d, err := rootNode.Find("abcde"); d != nil || err == nil {
