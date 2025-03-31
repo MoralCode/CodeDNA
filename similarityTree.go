@@ -125,13 +125,13 @@ func (tree *SimilarityTreeNode) Find(value string) (*SimilarityTreeNode, error) 
 	sharedPrefixLen := len(utils.GetLongestPrefix(value, tree.Value))
 	maxPossiblePrefixLen := min(inValueLen, treeValueLen)
 
-	if inValueLen == 0 || sharedPrefixLen == 0 {
+	if inValueLen == 0 {
 		// value found (prior node)
 		// dont try and return nil if we called this on the root node (which has no parent)\
 		if tree.Parent != nil {
 			return tree.Parent, nil
 		} else {
-			return nil, errors.New("could not find node. you attempted to search for an empty value on the root node. this is an error")
+			return tree, nil
 		}
 	} else if sharedPrefixLen < maxPossiblePrefixLen {
 		return nil, errors.New("node does not exist. matches stopped in the middle of a node")
