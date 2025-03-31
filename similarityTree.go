@@ -75,7 +75,12 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, error) {
 	sharedPrefixLen := len(utils.GetLongestPrefix(value, tree.Value))
 	// if no value left, base case
 	if len(value) == 0 {
-		return tree.Parent, nil
+		// dont try and return nil if we called this on the root node (which has no parent)
+		if tree.Parent != nil {
+			return tree.Parent, nil
+		} else {
+			return tree, nil
+		}
 	} else if sharedPrefixLen == treeValueLen {
 		// if the value completely shares a prefix, traverse into child
 		lookupRune := rune(value[sharedPrefixLen])
