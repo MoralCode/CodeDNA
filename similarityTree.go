@@ -19,6 +19,7 @@ type SimilarityTreeNode struct {
 }
 
 // Split a node's value into two nodes at the point specified by the given length
+// This is done in a way that preserves the base node and returns the newly-split node as a value
 func (tree *SimilarityTreeNode) Split(split_length int) (*SimilarityTreeNode, error) {
 	// Step 0. Prerequisites
 	if len((*tree).Value) < 2 {
@@ -63,7 +64,11 @@ func (tree *SimilarityTreeNode) Split(split_length int) (*SimilarityTreeNode, er
 }
 
 // Add new nodes to the tree until the entire value has been added
-func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, error) {
+// Returns:
+//  1. the node that represents the value just added
+//  2. the result of the node that was split (if any) to create that node
+//  3. error (if any)
+func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, *SimilarityTreeNode, error) {
 
 	inValueLen := len(value)
 	treeValueLen := len(tree.Value)
@@ -72,9 +77,9 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, error) {
 	if len(value) == 0 {
 		// dont try and return nil if we called this on the root node (which has no parent)
 		if tree.Parent != nil {
-			return tree.Parent, nil
+			return tree.Parent, nil, nil
 		} else {
-			return tree, nil
+			return tree, nil, nil
 		}
 	} else if sharedPrefixLen == treeValueLen {
 		// if the value completely shares a prefix, traverse into child
@@ -90,18 +95,22 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, error) {
 				Value:    value[sharedPrefixLen:],
 			}
 			tree.Children[lookupRune] = &node
-			return &node, nil
+			return &node, nil, nil
 		}
 	} else if sharedPrefixLen == inValueLen {
 		//if the incoming value ends before the end of the current value
 		// split
-		return (*tree).Split(sharedPrefixLen)
+		newSplit, err := (*tree).Split(sharedPrefixLen)
+		if err != nil {
+			return nil, nil, err
+		}
+		return tree, newSplit, nil
 	} else {
 		// if incoming value has a match ending in the middle of the current, length of tree value, we need to split it
 
-		_, err := (*tree).Split(sharedPrefixLen)
+		newSplit, err := (*tree).Split(sharedPrefixLen)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		newSubValue := value[sharedPrefixLen:]
@@ -113,7 +122,7 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, error) {
 		}
 		// add it to the now-split root node
 		(*tree).Children[rune(newSubValue[0])] = &node
-		return &node, nil
+		return &node, newSplit, nil
 	}
 }
 
