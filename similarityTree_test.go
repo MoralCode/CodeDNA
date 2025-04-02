@@ -85,13 +85,17 @@ func TestAddAppendCase(t *testing.T) {
 	}
 
 	targetIdVal := "abcdefgh"
-	returnedChild, err := rootNode.Add(targetIdVal)
+	returnedChild, splitChild, err := rootNode.Add(targetIdVal)
 	if err != nil {
 		t.Errorf(`Error: %q`, err)
 	}
 
 	if len(rootNode.Children) != 1 {
 		t.Errorf(`rootNode failed ending conditions: children should be present, but were not`)
+	}
+
+	if splitChild != nil {
+		t.Errorf(`simple append adds should not return a split child`)
 	}
 
 	fmt.Printf("Children after Add: %+v\n", rootNode.Children)
@@ -126,12 +130,14 @@ func TestAddSplitCase(t *testing.T) {
 		Parent:   nil,
 	}
 
+	originalValue := rootNode.FullValue()
+
 	if len((*rootNode).Children) != 0 {
 		t.Errorf(`rootNode failed initial conditions: children should not be present, but some were`)
 	}
 
 	targetIdVal := "abcdefgh"
-	returnedChild, err := (*rootNode).Add(targetIdVal)
+	returnedChild, splitChild, err := (*rootNode).Add(targetIdVal)
 	if err != nil {
 		t.Errorf(`Error: %q`, err)
 	}
@@ -148,6 +154,11 @@ func TestAddSplitCase(t *testing.T) {
 	expected := "fghi"
 	if val := *ogChild; val.Value != expected {
 		t.Errorf(`Value for original child = %q, was not %q`, val.Value, expected)
+	}
+
+	if originalValue != splitChild.FullValue() {
+		t.Errorf("Split value returned from Add() doesnt match the origi")
+
 	}
 
 	newChild, exists := (*rootNode).Children[rune('e')]
@@ -369,6 +380,72 @@ func TestCommonAncestor(t *testing.T) {
 
 	if a, err := childNodeA.CommonAncestorWith(&childNode2); a != &rootNode && err != nil {
 		t.Errorf(`common ancestor between childNode and childnode2 was node with value: %q, but should have been node with value %q`, a.Value, rootNode.Value)
+	}
+
+}
+
+func TestLeafMaintainance(t *testing.T) {
+
+	childNode2 := SimilarityTreeNode{
+		Value:    "ijkl",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	childNode := SimilarityTreeNode{
+		Value:    "efgh",
+		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		Parent:   nil,
+	}
+
+	// childNodeA := SimilarityTreeNode{
+	// 	Value:    "wxyz",
+	// 	Children: map[rune]*SimilarityTreeNode{},
+	// 	Parent:   nil,
+	// }
+
+	rootNode := SimilarityTreeNode{
+		Value: "abcd",
+		Children: map[rune]*SimilarityTreeNode{
+			rune('e'): &childNode,
+			// rune('w'): &childNodeA,
+		},
+		Parent: nil,
+	}
+
+	childNode.Parent = &rootNode
+	// childNodeA.Parent = &rootNode
+	childNode2.Parent = &childNode
+
+	test := SimilarityTree{
+		Root:   &rootNode,
+		Leaves: map[string]*SimilarityTreeNode{},
+	}
+
+	// simple add
+	if v := len(test.Leaves); v != 0 {
+		t.Errorf(`similarity tree was expected to have no leaves but instead had: %d`, v)
+	}
+
+	test.Add("w-x-y-z", "abcdwxyz")
+
+	if _, has := test.Leaves["w-x-y-z"]; has != true {
+		t.Errorf(`similarity tree was expected to have a leaf at key %q: with value %q, but it doesnt exist`, "w-x-y-z", "wxyz")
+	}
+
+	if v, has := test.Leaves["w-x-y-z"]; has == true && v.Value != "wxyz" {
+		t.Errorf(`similarity tree was expected to have a leaf at key %q: with value %q, but instead had node with value %q`, "w-x-y-z", "wxyz", v.Value)
+	}
+
+	// add a value that will split the just-added value
+	test.Add("w-x", "abcdwx")
+
+	if _, has := test.Leaves["w-x"]; has != true {
+		t.Errorf(`similarity tree was expected to have a leaf at key %q: with value %q, but it doesnt exist`, "w-x", "wx")
+	}
+
+	if v, has := test.Leaves["w-x"]; has == true && v.Value != "wx" {
+		t.Errorf(`similarity tree was expected to have a leaf at key %q: with value %q, but instead had node with value %q`, "w-x", "wx", v.Value)
 	}
 
 }

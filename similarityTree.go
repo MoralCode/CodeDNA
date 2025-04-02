@@ -293,3 +293,33 @@ func (root *SimilarityTreeNode) SimilarityScore(source1Node *SimilarityTreeNode,
 	return source1IndependentDistance + source2IndependentDistance, nil
 
 }
+
+type SimilarityTree struct {
+	Root *SimilarityTreeNode
+	// map source to the leaf node
+	Leaves map[string]*SimilarityTreeNode
+}
+
+func NewSimilarityTree() SimilarityTree {
+	return SimilarityTree{
+		Root: &SimilarityTreeNode{
+			Value:    "",
+			Children: map[rune]*SimilarityTreeNode{},
+			Parent:   nil,
+		},
+		Leaves: map[string]*SimilarityTreeNode{},
+	}
+}
+
+func (graph *SimilarityTree) Add(source string, identifier string) error {
+	existingLeaf, has := graph.Leaves[source]
+	var newNode *SimilarityTreeNode
+	newNode, _, err := graph.Root.Add(identifier)
+	if err != nil {
+		return err
+	}
+	if !has || existingLeaf != newNode {
+		graph.Leaves[source] = newNode
+	}
+	return nil
+}
