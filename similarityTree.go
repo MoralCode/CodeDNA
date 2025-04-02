@@ -245,6 +245,26 @@ func (tree *SimilarityTreeNode) DistanceTo(node *SimilarityTreeNode) int {
 	return tree.Parent.DistanceTo(node) + 1
 }
 
+func (tree *SimilarityTreeNode) Leaves() []*SimilarityTreeNode {
+	leaves := make([]*SimilarityTreeNode, 0, 5)
+	// base case: we are a child
+	if len(tree.Children) == 0 {
+		leaves = append(leaves, tree)
+		// second base case, we
+		// } else if child, has := tree.Children[rune(0)]; has {
+		// 	leaves = append(leaves, tree)
+
+	} else {
+
+		for _, child := range tree.Children {
+			leaves = append(leaves, child.Leaves()...)
+		}
+	}
+	// TODO: handle leaf values that end in the middle of a tree, perfectly on a node but where that node also has children
+	// maybe this could use the null rune(0) value as the key?
+	return leaves
+}
+
 func (tree *SimilarityTreeNode) parentChain() []*SimilarityTreeNode {
 	// base case: root node
 	if tree.Parent == nil {

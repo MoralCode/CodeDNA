@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 )
 
@@ -380,6 +381,66 @@ func TestCommonAncestor(t *testing.T) {
 
 	if a, err := childNodeA.CommonAncestorWith(&childNode2); a != &rootNode && err != nil {
 		t.Errorf(`common ancestor between childNode and childnode2 was node with value: %q, but should have been node with value %q`, a.Value, rootNode.Value)
+	}
+
+}
+
+func TestLeafDetection(t *testing.T) {
+	childNode2 := SimilarityTreeNode{
+		Value:    "ijkl",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	childNode := SimilarityTreeNode{
+		Value:    "efgh",
+		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		Parent:   nil,
+	}
+
+	childNodeA := SimilarityTreeNode{
+		Value:    "wxyz",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	nullNode := SimilarityTreeNode{
+		Value:    "",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	rootNode := SimilarityTreeNode{
+		Value: "abcd",
+		Children: map[rune]*SimilarityTreeNode{
+			rune(0):   &nullNode,
+			rune('e'): &childNode,
+			rune('w'): &childNodeA,
+		},
+		Parent: nil,
+	}
+
+	childNode.Parent = &rootNode
+	childNodeA.Parent = &rootNode
+	childNode2.Parent = &childNode
+	nullNode.Parent = &rootNode
+
+	leaves := rootNode.Leaves()
+
+	if l := len(leaves); l != 3 {
+		t.Errorf(`Leaves() returned incorrect number of leaves, expected %q, got %q`, 3, l)
+	}
+
+	if !slices.Contains(leaves, &childNode2) {
+		t.Errorf(`Leaves() should contain childNode2, but didnt`)
+	}
+
+	if !slices.Contains(leaves, &childNodeA) {
+		t.Errorf(`Leaves() should contain childNodeA, but didnt`)
+	}
+
+	if !slices.Contains(leaves, &nullNode) {
+		t.Errorf(`Leaves() should contain nullNode, but didnt`)
 	}
 
 }
