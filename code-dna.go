@@ -164,7 +164,7 @@ func lineageIDFromGitHub(repourl string, prefixLength uint8) string {
 func lineageIDFromGitClone(repourl string, tempdir string, prefixLength uint8) string {
 	repo, err := git.PlainClone(tempdir, true, &git.CloneOptions{
 		URL:               repourl,
-		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+		RecurseSubmodules: 0,
 		// Differently than the git CLI, by default go-git downloads
 		// all tags and its related objects. To avoid unnecessary
 		// data transmission and processing, opt-out tags.
