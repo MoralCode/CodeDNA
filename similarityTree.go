@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/MoralCode/CodeDNA/utils"
@@ -195,7 +196,7 @@ func (tree *SimilarityTreeNode) Print(level int) {
 	} else if valLen < 10 {
 		val = tree.Value
 	} else {
-		val = tree.Value[0:5] + "..." + tree.Value[valLen-5:]
+		val = tree.Value[0:5] + "..." + tree.Value[valLen-5:] + " (" + strconv.Itoa(valLen) + ")"
 	}
 	fmt.Println(indents+"Value:", val)
 	for k, v := range tree.Children {
