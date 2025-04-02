@@ -40,7 +40,7 @@ func getLineageIDFromRepo(repo *git.Repository, prefixLength uint8) (string, err
 	// ... retrieves the commit history
 	// since := time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)
 	// until := time.Date(2019, 7, 30, 0, 0, 0, 0, time.UTC)
-	cIter, err := repo.Log(&git.LogOptions{From: ref.Hash(), Order: git.LogOrderDFSPost})
+	cIter, err := repo.Log(&git.LogOptions{From: ref.Hash(), Order: git.LogOrderDFSPostNoMerge})
 	// , Since: &since, Until: &until
 	if err != nil {
 		return "", err
