@@ -145,7 +145,7 @@ func TestAddSplitCase(t *testing.T) {
 
 	targetChildren := 2
 	if l := len((*rootNode).Children()); l != targetChildren {
-		t.Errorf(`rootNode failed ending conditions: %q should be present, but %q were actually`, targetChildren, l)
+		t.Errorf(`rootNode failed ending conditions: %d should be present, but %d were actually`, targetChildren, l)
 	}
 
 	ogChild, exists := (*rootNode).Child(rune('f'))
@@ -200,7 +200,7 @@ func TestAddShorterCase(t *testing.T) {
 
 	targetChildren := 1
 	if l := len((*rootNode).Children()); l != targetChildren {
-		t.Errorf(`rootNode failed ending conditions: %q should be present, but %q were actually`, targetChildren, l)
+		t.Errorf(`rootNode failed ending conditions: %d should be present, but %d were actually`, targetChildren, l)
 	}
 
 	ogChild, exists := (*rootNode).Child('d')
@@ -428,7 +428,7 @@ func TestLeafDetection(t *testing.T) {
 	leaves := rootNode.Leaves()
 
 	if l := len(leaves); l != 3 {
-		t.Errorf(`Leaves() returned incorrect number of leaves, expected %q, got %q`, 3, l)
+		t.Errorf(`Leaves() returned incorrect number of leaves, expected %d, got %d`, 3, l)
 	}
 
 	if !slices.Contains(leaves, &childNode2) {
