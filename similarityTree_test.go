@@ -9,13 +9,13 @@ import (
 func TestGetFullValue(t *testing.T) {
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	rootNode := SimilarityTreeNode{
 		Value:    "abcd",
-		Children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
+		children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
 		Parent:   nil,
 	}
 
@@ -34,19 +34,19 @@ func TestGetFullValue(t *testing.T) {
 func TestGetFullValueTo(t *testing.T) {
 	childNode2 := SimilarityTreeNode{
 		Value:    "ijkl",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
-		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
 		Parent:   nil,
 	}
 
 	rootNode := SimilarityTreeNode{
 		Value:    "abcd",
-		Children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
+		children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
 		Parent:   nil,
 	}
 
@@ -69,19 +69,19 @@ func TestGetFullValueTo(t *testing.T) {
 func TestAddAppendCase(t *testing.T) {
 	// childNode := SimilarityTreeNode{
 	// 	Value:    "efgh",
-	// 	Children: map[rune]*SimilarityTreeNode{},
+	// 	children: map[rune]*SimilarityTreeNode{},
 	// 	Parent:   nil,
 	// }
 
 	rootNode := SimilarityTreeNode{
 		Value:    "abcd",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	// childNode.Parent = &rootNode
 
-	if len(rootNode.Children) != 0 {
+	if len(rootNode.Children()) != 0 {
 		t.Errorf(`rootNode failed initial conditions: children should not be present, but some were`)
 	}
 
@@ -91,7 +91,7 @@ func TestAddAppendCase(t *testing.T) {
 		t.Errorf(`Error: %q`, err)
 	}
 
-	if len(rootNode.Children) != 1 {
+	if len(rootNode.Children()) != 1 {
 		t.Errorf(`rootNode failed ending conditions: children should be present, but were not`)
 	}
 
@@ -99,9 +99,9 @@ func TestAddAppendCase(t *testing.T) {
 		t.Errorf(`simple append adds should not return a split child`)
 	}
 
-	fmt.Printf("Children after Add: %+v\n", rootNode.Children)
+	fmt.Printf("Children after Add: %+v\n", rootNode.Children())
 
-	newChild, exists := rootNode.Children[rune('e')]
+	newChild, exists := rootNode.Child(rune('e'))
 	if !exists {
 		t.Errorf("Expected child with key 'e', but it was not found")
 	}
@@ -127,13 +127,13 @@ func TestAddSplitCase(t *testing.T) {
 
 	rootNode := &SimilarityTreeNode{
 		Value:    "abcdfghi",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	originalValue := rootNode.FullValue()
 
-	if len((*rootNode).Children) != 0 {
+	if len((*rootNode).Children()) != 0 {
 		t.Errorf(`rootNode failed initial conditions: children should not be present, but some were`)
 	}
 
@@ -144,11 +144,11 @@ func TestAddSplitCase(t *testing.T) {
 	}
 
 	targetChildren := 2
-	if l := len((*rootNode).Children); l != targetChildren {
+	if l := len((*rootNode).Children()); l != targetChildren {
 		t.Errorf(`rootNode failed ending conditions: %q should be present, but %q were actually`, targetChildren, l)
 	}
 
-	ogChild, exists := (*rootNode).Children[rune('f')]
+	ogChild, exists := (*rootNode).Child(rune('f'))
 	if !exists {
 		t.Errorf("Expected child with key 'f', but it was not found")
 	}
@@ -162,7 +162,7 @@ func TestAddSplitCase(t *testing.T) {
 
 	}
 
-	newChild, exists := (*rootNode).Children[rune('e')]
+	newChild, exists := (*rootNode).Child(rune('e'))
 	if !exists {
 		t.Errorf("Expected child with key 'e', but it was not found")
 	}
@@ -188,22 +188,22 @@ func TestAddShorterCase(t *testing.T) {
 
 	rootNode := &SimilarityTreeNode{
 		Value:    "abcdfghi",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
-	if len((*rootNode).Children) != 0 {
+	if len((*rootNode).Children()) != 0 {
 		t.Errorf(`rootNode failed initial conditions: children should not be present, but some were`)
 	}
 
 	(*rootNode).Add("abc")
 
 	targetChildren := 1
-	if l := len((*rootNode).Children); l != targetChildren {
+	if l := len((*rootNode).Children()); l != targetChildren {
 		t.Errorf(`rootNode failed ending conditions: %q should be present, but %q were actually`, targetChildren, l)
 	}
 
-	ogChild, exists := (*rootNode).Children[rune('d')]
+	ogChild, exists := (*rootNode).Child('d')
 	if !exists {
 		t.Errorf("Expected child with key 'd', but it was not found")
 	}
@@ -216,25 +216,25 @@ func TestAddShorterCase(t *testing.T) {
 func TestFind(t *testing.T) {
 	childNode2 := SimilarityTreeNode{
 		Value:    "ijkl",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
-		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
 		Parent:   nil,
 	}
 
 	childNodeA := SimilarityTreeNode{
 		Value:    "wxyz",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	rootValueNode := SimilarityTreeNode{
 		Value: "abcd",
-		Children: map[rune]*SimilarityTreeNode{
+		children: map[rune]*SimilarityTreeNode{
 			rune('e'): &childNode,
 			rune('w'): &childNodeA,
 		},
@@ -243,7 +243,7 @@ func TestFind(t *testing.T) {
 
 	rootNode := SimilarityTreeNode{
 		Value: "",
-		Children: map[rune]*SimilarityTreeNode{
+		children: map[rune]*SimilarityTreeNode{
 			rune('a'): &rootValueNode,
 		},
 		Parent: nil,
@@ -283,13 +283,13 @@ func TestFind(t *testing.T) {
 func TestDistance(t *testing.T) {
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	rootNode := SimilarityTreeNode{
 		Value:    "abcd",
-		Children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
+		children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
 		Parent:   nil,
 	}
 
@@ -309,19 +309,19 @@ func TestDistanceTo(t *testing.T) {
 
 	childNode2 := SimilarityTreeNode{
 		Value:    "ijkl",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
-		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
 		Parent:   nil,
 	}
 
 	rootNode := SimilarityTreeNode{
 		Value:    "abcd",
-		Children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
+		children: map[rune]*SimilarityTreeNode{rune('e'): &childNode},
 		Parent:   nil,
 	}
 
@@ -346,25 +346,25 @@ func TestCommonAncestor(t *testing.T) {
 
 	childNode2 := SimilarityTreeNode{
 		Value:    "ijkl",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
-		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
 		Parent:   nil,
 	}
 
 	childNodeA := SimilarityTreeNode{
 		Value:    "wxyz",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	rootNode := SimilarityTreeNode{
 		Value: "abcd",
-		Children: map[rune]*SimilarityTreeNode{
+		children: map[rune]*SimilarityTreeNode{
 			rune('e'): &childNode,
 			rune('w'): &childNodeA,
 		},
@@ -388,31 +388,31 @@ func TestCommonAncestor(t *testing.T) {
 func TestLeafDetection(t *testing.T) {
 	childNode2 := SimilarityTreeNode{
 		Value:    "ijkl",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
-		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
 		Parent:   nil,
 	}
 
 	childNodeA := SimilarityTreeNode{
 		Value:    "wxyz",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	nullNode := SimilarityTreeNode{
 		Value:    "",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	rootNode := SimilarityTreeNode{
 		Value: "abcd",
-		Children: map[rune]*SimilarityTreeNode{
+		children: map[rune]*SimilarityTreeNode{
 			rune(0):   &nullNode,
 			rune('e'): &childNode,
 			rune('w'): &childNodeA,
@@ -448,31 +448,31 @@ func TestLeafDetection(t *testing.T) {
 func TestSiblingDetection(t *testing.T) {
 	childNode2 := SimilarityTreeNode{
 		Value:    "ijkl",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
-		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
 		Parent:   nil,
 	}
 
 	childNodeA := SimilarityTreeNode{
 		Value:    "wxyz",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	nullNode := SimilarityTreeNode{
 		Value:    "",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	rootNode := SimilarityTreeNode{
 		Value: "abcd",
-		Children: map[rune]*SimilarityTreeNode{
+		children: map[rune]*SimilarityTreeNode{
 			rune(0):   &nullNode,
 			rune('e'): &childNode,
 			rune('w'): &childNodeA,
@@ -515,25 +515,25 @@ func TestLeafMaintainance(t *testing.T) {
 
 	childNode2 := SimilarityTreeNode{
 		Value:    "ijkl",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 
 	childNode := SimilarityTreeNode{
 		Value:    "efgh",
-		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
 		Parent:   nil,
 	}
 
 	// childNodeA := SimilarityTreeNode{
 	// 	Value:    "wxyz",
-	// 	Children: map[rune]*SimilarityTreeNode{},
+	// 	children: map[rune]*SimilarityTreeNode{},
 	// 	Parent:   nil,
 	// }
 
 	rootNode := SimilarityTreeNode{
 		Value: "abcd",
-		Children: map[rune]*SimilarityTreeNode{
+		children: map[rune]*SimilarityTreeNode{
 			rune('e'): &childNode,
 			// rune('w'): &childNodeA,
 		},

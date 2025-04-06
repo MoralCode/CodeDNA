@@ -13,7 +13,7 @@ import (
 type SimilarityTreeNode struct {
 	Value string
 	// mapping of a prefix
-	Children map[rune]*SimilarityTreeNode
+	children map[rune]*SimilarityTreeNode
 	Parent   *SimilarityTreeNode
 
 	// [16]*SimilarityTree
@@ -47,14 +47,14 @@ func (tree *SimilarityTreeNode) Split(split_length int) (*SimilarityTreeNode, er
 	}
 
 	// Step 2: Transfer Children
-	tail.Children = (*tree).Children
+	tail.children = (*tree).children
 
 	// Step 3: Update HEAD (the original node)
-	(*tree).Children = newHeadChildren
+	(*tree).children = newHeadChildren
 	(*tree).Value = newHeadValue
 
 	// Step 4: connect detached chain to TAIL
-	for _, child := range tail.Children {
+	for _, child := range tail.children {
 		child.Parent = &tail
 	}
 
@@ -68,16 +68,16 @@ func (tree *SimilarityTreeNode) Split(split_length int) (*SimilarityTreeNode, er
 // this is only meant to be internal behavior, not something that general
 // consumers of this tree structure should need to do
 func (tree *SimilarityTreeNode) addNullNode() (*SimilarityTreeNode, error) {
-	lookupVal, hasLookup := tree.Children[rune(0)]
+	lookupVal, hasLookup := tree.children[rune(0)]
 	if hasLookup {
 		return lookupVal, nil
 	} else {
 		nullNode := SimilarityTreeNode{
 			Parent:   tree,
-			Children: map[rune]*SimilarityTreeNode{},
+			children: map[rune]*SimilarityTreeNode{},
 			Value:    "",
 		}
-		tree.Children[rune(0)] = &nullNode
+		tree.children[rune(0)] = &nullNode
 		return &nullNode, nil
 	}
 }
@@ -121,11 +121,11 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, *Similar
 		// create a new node representing the differing part of the value
 		node := SimilarityTreeNode{
 			Parent:   tree,
-			Children: map[rune]*SimilarityTreeNode{}, //empty map
+			children: map[rune]*SimilarityTreeNode{}, //empty map
 			Value:    newSubValue,
 		}
 		// add it to the now-split root node
-		(*tree).Children[rune(newSubValue[0])] = &node
+		(*tree).children[rune(newSubValue[0])] = &node
 		return &node, newSplit, nil
 
 	} else if sharedPrefixLen == maxPossiblePrefixLen {
@@ -154,17 +154,17 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, *Similar
 		} else if inValueLen > treeValueLen {
 			// search limited by current tree value, traverse into children
 			lookupRune := rune(value[sharedPrefixLen])
-			lookupVal, hasLookup := tree.Children[lookupRune]
+			lookupVal, hasLookup := tree.children[lookupRune]
 			if hasLookup {
 				return (*lookupVal).Add(value[sharedPrefixLen:])
 			} else {
 				// no sub value exists, create it
 				node := SimilarityTreeNode{
 					Parent:   tree,
-					Children: map[rune]*SimilarityTreeNode{}, //empty map
+					children: map[rune]*SimilarityTreeNode{}, //empty map
 					Value:    value[sharedPrefixLen:],
 				}
-				tree.Children[lookupRune] = &node
+				tree.children[lookupRune] = &node
 				return &node, nil, nil
 			}
 		}
@@ -203,7 +203,7 @@ func (tree *SimilarityTreeNode) Find(value string) (*SimilarityTreeNode, error) 
 		} else if inValueLen > treeValueLen {
 			// search limited by node value, traverse into children
 			lookupRune := rune(value[sharedPrefixLen])
-			lookupVal, hasLookup := tree.Children[lookupRune]
+			lookupVal, hasLookup := tree.children[lookupRune]
 			if hasLookup {
 				return (*lookupVal).Find(value[sharedPrefixLen:])
 			} else {
@@ -216,7 +216,7 @@ func (tree *SimilarityTreeNode) Find(value string) (*SimilarityTreeNode, error) 
 }
 
 func (tree *SimilarityTreeNode) IsLeaf() bool {
-	return len(tree.Children) == 0
+	return len(tree.children) == 0
 }
 
 // Get the "full value" of this node (its value, prefixed with the value of all of its parents)
@@ -244,7 +244,7 @@ func (tree *SimilarityTreeNode) Print(level int) {
 		val = tree.Value[0:5] + "..." + tree.Value[valLen-5:] + " (" + strconv.Itoa(valLen) + ")"
 	}
 	fmt.Println(indents+"Value:", val)
-	for k, v := range tree.Children {
+	for k, v := range tree.children {
 		fmt.Println(indents + "Child " + string(k) + ":")
 		v.Print(level + 1)
 	}
@@ -295,7 +295,7 @@ func (tree *SimilarityTreeNode) Siblings() []*SimilarityTreeNode {
 		return []*SimilarityTreeNode{}
 	}
 
-	siblingMap := tree.Parent.Children
+	siblingMap := tree.Parent.children
 
 	v := make([]*SimilarityTreeNode, 0, len(siblingMap))
 
@@ -308,18 +308,43 @@ func (tree *SimilarityTreeNode) Siblings() []*SimilarityTreeNode {
 	return v
 }
 
+// Allow callers to query the children of a node in the tree
+// the purpose of this function is to both be an abstraction,
+// and to filter out null nodes as they are an internal construct
+func (tree *SimilarityTreeNode) Children() []*SimilarityTreeNode {
+	childNodes := []*SimilarityTreeNode{}
+	for k, v := range tree.children {
+		if k != rune(0) {
+			childNodes = append(childNodes, v)
+		}
+	}
+	return childNodes
+}
+
+// Allow callers to query the presence of children in the tree
+// the purpose of this function is to pass through the "has" capability
+// of the golang map underlying this structure since it is private
+func (tree *SimilarityTreeNode) Child(value rune) (*SimilarityTreeNode, bool) {
+	if value == rune(0) {
+		return nil, false
+	}
+
+	child, has := tree.children[value]
+	return child, has
+}
+
 func (tree *SimilarityTreeNode) Leaves() []*SimilarityTreeNode {
 	leaves := make([]*SimilarityTreeNode, 0, 5)
 	// base case: we are a child
-	if len(tree.Children) == 0 {
+	if len(tree.children) == 0 {
 		leaves = append(leaves, tree)
 		// second base case, we
-		// } else if child, has := tree.Children[rune(0)]; has {
+		// } else if child, has := tree.children[rune(0)]; has {
 		// 	leaves = append(leaves, tree)
 
 	} else {
 
-		for _, child := range tree.Children {
+		for _, child := range tree.children {
 			leaves = append(leaves, child.Leaves()...)
 		}
 	}
@@ -356,7 +381,7 @@ func (a *SimilarityTreeNode) CommonAncestorWith(b *SimilarityTreeNode) (*Similar
 func NewSimilarityTreeNode() SimilarityTreeNode {
 	return SimilarityTreeNode{
 		Value:    "",
-		Children: map[rune]*SimilarityTreeNode{},
+		children: map[rune]*SimilarityTreeNode{},
 		Parent:   nil,
 	}
 }
@@ -388,7 +413,7 @@ func NewSimilarityTree() SimilarityTree {
 	return SimilarityTree{
 		Root: &SimilarityTreeNode{
 			Value:    "",
-			Children: map[rune]*SimilarityTreeNode{},
+			children: map[rune]*SimilarityTreeNode{},
 			Parent:   nil,
 		},
 		Leaves: map[string]*SimilarityTreeNode{},
