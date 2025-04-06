@@ -439,8 +439,8 @@ func TestLeafDetection(t *testing.T) {
 		t.Errorf(`Leaves() should contain childNodeA, but didnt`)
 	}
 
-	if !slices.Contains(leaves, &nullNode) {
-		t.Errorf(`Leaves() should contain nullNode, but didnt`)
+	if !slices.Contains(leaves, &rootNode) {
+		t.Errorf(`Leaves() should contain rootNode, but didnt`)
 	}
 
 }

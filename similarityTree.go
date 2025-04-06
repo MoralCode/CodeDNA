@@ -344,8 +344,13 @@ func (tree *SimilarityTreeNode) Leaves() []*SimilarityTreeNode {
 
 	} else {
 
-		for _, child := range tree.children {
-			leaves = append(leaves, child.Leaves()...)
+		for key, child := range tree.children {
+			if key == rune(0) {
+				// if we encounter a null node, that means the parent (i.e. the current tree) is also a leaf node
+				leaves = append(leaves, tree)
+			} else {
+				leaves = append(leaves, child.Leaves()...)
+			}
 		}
 	}
 	// TODO: handle leaf values that end in the middle of a tree, perfectly on a node but where that node also has children
