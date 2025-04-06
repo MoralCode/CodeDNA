@@ -333,14 +333,18 @@ func (tree *SimilarityTreeNode) Child(value rune) (*SimilarityTreeNode, bool) {
 	return child, has
 }
 
+// Return all leaf nodes in a particular part of the tree.
+// Leaf nodes represent/point to nodes whose FullValue() represents the LineageID for a particular repository
+// Since these identifiers can end in the middle of other identifiers
+// (such as an old abandoned repo that was later picked up by a new maintainer but the original remains as is)
+// We expand the traditional "computer science" definition of leaf nodes (i.e. nodes that have no children)
+// to also include nodes that are parents of a null node (child with a key of rune(0)), thus allowing "leaf nodes"
+// to exist mid-tree (making them more similar to git branches than traditional leaf nodes)
 func (tree *SimilarityTreeNode) Leaves() []*SimilarityTreeNode {
 	leaves := make([]*SimilarityTreeNode, 0, 5)
-	// base case: we are a child
+	// base case: we are a leaf
 	if len(tree.children) == 0 {
 		leaves = append(leaves, tree)
-		// second base case, we
-		// } else if child, has := tree.children[rune(0)]; has {
-		// 	leaves = append(leaves, tree)
 
 	} else {
 
