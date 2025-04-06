@@ -216,7 +216,7 @@ func (tree *SimilarityTreeNode) Find(value string) (*SimilarityTreeNode, error) 
 }
 
 func (tree *SimilarityTreeNode) IsLeaf() bool {
-	return len(tree.children) == 0
+	return len(tree.children) == 0 || tree.children[rune(0)] != nil
 }
 
 // Get the "full value" of this node (its value, prefixed with the value of all of its parents)
@@ -243,10 +243,17 @@ func (tree *SimilarityTreeNode) Print(level int) {
 	} else {
 		val = tree.Value[0:5] + "..." + tree.Value[valLen-5:] + " (" + strconv.Itoa(valLen) + ")"
 	}
+	if tree.IsLeaf() {
+		val += " [LEAF]"
+	}
+
 	fmt.Println(indents+"Value:", val)
 	for k, v := range tree.children {
-		fmt.Println(indents + "Child " + string(k) + ":")
-		v.Print(level + 1)
+		if k != rune(0) {
+			fmt.Println(indents + "Child " + string(k) + ":")
+			v.Print(level + 1)
+		}
+
 	}
 }
 
