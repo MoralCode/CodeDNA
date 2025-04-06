@@ -395,6 +395,10 @@ func (root *SimilarityTreeNode) SimilarityScore(source1Node *SimilarityTreeNode,
 
 }
 
+// lol maybe this should be called the family tree instead to keep with the CodeDNA naming theme
+
+// SimilarityTree is a higher level structure that exists to keep track of
+// labelled leaves in the tree so that the nicknames or source URLs for each repo identified by it can be used to look up the node in the tree less-expensively than the lower level node.Find() function
 type SimilarityTree struct {
 	Root *SimilarityTreeNode
 	// map source to the leaf node
