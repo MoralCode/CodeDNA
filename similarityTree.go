@@ -245,6 +245,24 @@ func (tree *SimilarityTreeNode) DistanceTo(node *SimilarityTreeNode) int {
 	return tree.Parent.DistanceTo(node) + 1
 }
 
+func (tree *SimilarityTreeNode) Siblings() []*SimilarityTreeNode {
+	if tree.Parent == nil {
+		return []*SimilarityTreeNode{}
+	}
+
+	siblingMap := tree.Parent.Children
+
+	v := make([]*SimilarityTreeNode, 0, len(siblingMap))
+
+	for key, value := range siblingMap {
+		// exclude null nodes because those only serve as pointers from the leaf detection parts of the graph
+		if key != rune(0) {
+			v = append(v, value)
+		}
+	}
+	return v
+}
+
 func (tree *SimilarityTreeNode) Leaves() []*SimilarityTreeNode {
 	leaves := make([]*SimilarityTreeNode, 0, 5)
 	// base case: we are a child

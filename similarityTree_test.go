@@ -445,6 +445,72 @@ func TestLeafDetection(t *testing.T) {
 
 }
 
+func TestSiblingDetection(t *testing.T) {
+	childNode2 := SimilarityTreeNode{
+		Value:    "ijkl",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	childNode := SimilarityTreeNode{
+		Value:    "efgh",
+		Children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		Parent:   nil,
+	}
+
+	childNodeA := SimilarityTreeNode{
+		Value:    "wxyz",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	nullNode := SimilarityTreeNode{
+		Value:    "",
+		Children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	rootNode := SimilarityTreeNode{
+		Value: "abcd",
+		Children: map[rune]*SimilarityTreeNode{
+			rune(0):   &nullNode,
+			rune('e'): &childNode,
+			rune('w'): &childNodeA,
+		},
+		Parent: nil,
+	}
+
+	childNode.Parent = &rootNode
+	childNodeA.Parent = &rootNode
+	childNode2.Parent = &childNode
+	nullNode.Parent = &rootNode
+
+	siblings := rootNode.Siblings()
+
+	if l := len(siblings); l != 0 {
+		t.Errorf(`Siblings() returned incorrect number of siblings for root node, expected %d, got %d`, 0, l)
+	}
+
+	siblings = childNode.Siblings()
+
+	if l := len(siblings); l != 2 {
+		t.Errorf(`Siblings() returned incorrect number of siblings for childNode, expected %d, got %d`, 2, l)
+	}
+
+	if slices.Contains(siblings, &childNode2) {
+		t.Errorf(`Siblings() of childNode should contain childNode2, but didnt`)
+	}
+
+	if !slices.Contains(siblings, &childNodeA) {
+		t.Errorf(`Siblings() of childNode should contain childNodeA, but didnt`)
+	}
+
+	if slices.Contains(siblings, &nullNode) {
+		t.Errorf(`Siblings() should not contain nullNode, but didnt`)
+	}
+
+}
+
 func TestLeafMaintainance(t *testing.T) {
 
 	childNode2 := SimilarityTreeNode{
