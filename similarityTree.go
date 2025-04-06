@@ -378,14 +378,6 @@ func (a *SimilarityTreeNode) CommonAncestorWith(b *SimilarityTreeNode) (*Similar
 	return nil, errors.New("no shared parentage between the nodes")
 }
 
-func NewSimilarityTreeNode() SimilarityTreeNode {
-	return SimilarityTreeNode{
-		Value:    "",
-		children: map[rune]*SimilarityTreeNode{},
-		Parent:   nil,
-	}
-}
-
 func (root *SimilarityTreeNode) SimilarityScore(source1Node *SimilarityTreeNode, source2Node *SimilarityTreeNode) (int, error) {
 
 	commonAncestor, err := source1Node.CommonAncestorWith(source2Node)
