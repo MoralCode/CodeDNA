@@ -64,51 +64,54 @@ func (tree *SimilarityTreeNode) Split(split_length int) (*SimilarityTreeNode, er
 	return &tail, nil
 }
 
+// internal function to add a null node to the given tree node
+// this is only meant to be internal behavior, not something that general
+// consumers of this tree structure should need to do
+func (tree *SimilarityTreeNode) addNullNode() (*SimilarityTreeNode, error) {
+	lookupVal, hasLookup := tree.Children[rune(0)]
+	if hasLookup {
+		return lookupVal, nil
+	} else {
+		nullNode := SimilarityTreeNode{
+			Parent:   tree,
+			Children: map[rune]*SimilarityTreeNode{},
+			Value:    "",
+		}
+		tree.Children[rune(0)] = &nullNode
+		return &nullNode, nil
+	}
+}
+
 // Add new nodes to the tree until the entire value has been added
 // Returns:
-//  1. the node that represents the value just added
-//  2. the result of the node that was split (if any) to create that node
+//  1. the node that represents the value being added (either created or existing)
+//  2. Any Auxiliary nodes that were created (such as the tail portion of a split node, or the null node for an add)
 //  3. error (if any)
 func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, *SimilarityTreeNode, error) {
 
 	inValueLen := len(value)
 	treeValueLen := len(tree.Value)
 	sharedPrefixLen := len(utils.GetLongestPrefix(value, tree.Value))
+	maxPossiblePrefixLen := min(inValueLen, treeValueLen)
+
 	// if no value left, base case
-	if len(value) == 0 {
+	if inValueLen == 0 {
 		// dont try and return nil if we called this on the root node (which has no parent)
 		if tree.Parent != nil {
 			return tree.Parent, nil, nil
 		} else {
 			return tree, nil, nil
 		}
-	} else if sharedPrefixLen == treeValueLen {
-		// if the value completely shares a prefix, traverse into child
-		lookupRune := rune(value[sharedPrefixLen])
-		lookupVal, hasLookup := tree.Children[lookupRune]
-		if hasLookup {
-			return (*lookupVal).Add(value[sharedPrefixLen:])
-		} else {
-			// no sub value exists, create it
-			node := SimilarityTreeNode{
-				Parent:   tree,
-				Children: map[rune]*SimilarityTreeNode{}, //empty map
-				Value:    value[sharedPrefixLen:],
-			}
-			tree.Children[lookupRune] = &node
-			return &node, nil, nil
-		}
-	} else if sharedPrefixLen == inValueLen {
-		//if the incoming value ends before the end of the current value
-		// split
-		newSplit, err := (*tree).Split(sharedPrefixLen)
-		if err != nil {
-			return nil, nil, err
-		}
-		return tree, newSplit, nil
-	} else {
-		// if incoming value has a match ending in the middle of the current, length of tree value, we need to split it
+		//We do not create a new null node here since calling Add() with
+		// a value of len 0 (empty string) is not considered valid.
+		// null nodes should only be created when theres an exact value match with an existing node for some real value
+	}
 
+	if sharedPrefixLen > maxPossiblePrefixLen {
+		return nil, nil, errors.New("shared prefix has exceeded its maximum possible length")
+	} else if sharedPrefixLen < maxPossiblePrefixLen {
+		//partial match but both the tree and incoming value have more to go
+		// so split and create a new child
 		newSplit, err := (*tree).Split(sharedPrefixLen)
 		if err != nil {
 			return nil, nil, err
@@ -124,7 +127,49 @@ func (tree *SimilarityTreeNode) Add(value string) (*SimilarityTreeNode, *Similar
 		// add it to the now-split root node
 		(*tree).Children[rune(newSubValue[0])] = &node
 		return &node, newSplit, nil
+
+	} else if sharedPrefixLen == maxPossiblePrefixLen {
+		if inValueLen < treeValueLen {
+			// perfect match for part of this node
+			// split
+			newSplit, err := (*tree).Split(sharedPrefixLen)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			_, err = tree.addNullNode()
+			if err != nil {
+				return nil, nil, err
+			}
+			return tree, newSplit, nil
+
+		} else if inValueLen == treeValueLen {
+			// this node matches the value perfectly with no leftovers. search complete
+			// Create null node, but still return the current node as primary
+			nullNode, err := tree.addNullNode()
+			if err != nil {
+				return nil, nil, err
+			}
+			return tree, nullNode, nil
+		} else if inValueLen > treeValueLen {
+			// search limited by current tree value, traverse into children
+			lookupRune := rune(value[sharedPrefixLen])
+			lookupVal, hasLookup := tree.Children[lookupRune]
+			if hasLookup {
+				return (*lookupVal).Add(value[sharedPrefixLen:])
+			} else {
+				// no sub value exists, create it
+				node := SimilarityTreeNode{
+					Parent:   tree,
+					Children: map[rune]*SimilarityTreeNode{}, //empty map
+					Value:    value[sharedPrefixLen:],
+				}
+				tree.Children[lookupRune] = &node
+				return &node, nil, nil
+			}
+		}
 	}
+	return nil, nil, errors.New("add finished without result. This is not supposed to happen")
 }
 
 // Traverse down the tree to find the leaf node representing the given value
