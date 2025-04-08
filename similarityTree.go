@@ -315,6 +315,21 @@ func (tree *SimilarityTreeNode) Siblings() []*SimilarityTreeNode {
 	return v
 }
 
+func (tree *SimilarityTreeNode) Family() string {
+	parents := tree.parentChain()
+
+	for _, p := range parents {
+		if p.Parent != nil && p.Parent.Parent != nil && len(p.Children()) > 0 {
+			return p.Parent.FullValueTo(p.Parent.Parent)
+		} else if p.Parent != nil && p.Parent.Parent != nil && len(p.Children()) > 0 {
+			return p.Parent.FullValue()
+		} else if p.Parent == nil {
+			return "orphan"
+		}
+	}
+	return "orphan"
+}
+
 // Allow callers to query the children of a node in the tree
 // the purpose of this function is to both be an abstraction,
 // and to filter out null nodes as they are an internal construct
@@ -367,6 +382,19 @@ func (tree *SimilarityTreeNode) Leaves() []*SimilarityTreeNode {
 	// TODO: handle leaf values that end in the middle of a tree, perfectly on a node but where that node also has children
 	// maybe this could use the null rune(0) value as the key?
 	return leaves
+}
+
+func (tree *SimilarityTreeNode) TreePath() string {
+	// base case: root node
+	if tree.Parent == nil {
+		if len(tree.Value) == 0 {
+			return ""
+		} else {
+			return string(tree.Value[0])
+		}
+	}
+
+	return tree.Parent.TreePath() + string(tree.Value[0])
 }
 
 func (tree *SimilarityTreeNode) parentChain() []*SimilarityTreeNode {
