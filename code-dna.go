@@ -400,9 +400,11 @@ func main() {
 			CheckIfError(err)
 		}
 
+		tree.Root.Print(0)
+		fmt.Println("")
+		fmt.Println("===========")
+		fmt.Println("")
 
-		tree.Print(0)
-		// TODO: have add return the added value
 
 		source1Node, err := tree.Find(a.LineageID)
 		CheckIfError(err)
