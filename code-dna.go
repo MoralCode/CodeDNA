@@ -389,30 +389,17 @@ func main() {
 	}
 
 	if opts.Similarity.Enabled {
-		tree := NewSimilarityTreeNode()
+		tree := NewSimilarityTree()
 
-		a, err := cache.GetByNickname("FossifyGallery")
+		cache, err := cache.GetAll()
 		CheckIfError(err)
-		b, err := cache.GetByNickname("SimpleGallery")
-		CheckIfError(err)
-		c, err := cache.GetByNickname("scc")
-		CheckIfError(err)
-
-		if a.LineageID == "" {
-			fmt.Println("a is empty")
+		// Add all repos to tree
+		for _, v := range cache {
+			// TODO: use url if no nickname available
+			err = tree.Add(v.Nickname, v.LineageID)
+			CheckIfError(err)
 		}
 
-		if b.LineageID == "" {
-			fmt.Println("b is empty")
-		}
-
-		if c.LineageID == "" {
-			fmt.Println("c is empty")
-		}
-
-		tree.Add(a.LineageID)
-		tree.Add(b.LineageID)
-		tree.Add(c.LineageID)
 
 		tree.Print(0)
 		// TODO: have add return the added value
