@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/jessevdk/go-flags"
@@ -405,38 +406,22 @@ func main() {
 		fmt.Println("===========")
 		fmt.Println("")
 
+		leafFamilies := []string{}
 
-		source1Node, err := tree.Find(a.LineageID)
-		CheckIfError(err)
+		for id, leaf := range tree.Leaves {
+			idString := leaf.TreePath()
+			idString += " \t( "
+			idString += id
+			idString += " ):\t "
+			idString += leaf.Family()
+			leafFamilies = append(leafFamilies, idString)
+		}
 
-		source2Node, err := tree.Find(b.LineageID)
-		CheckIfError(err)
+		sort.Strings(leafFamilies)
 
-		source3Node, err := tree.Find(c.LineageID)
-		CheckIfError(err)
-
-		// fmt.Println(tree.Leaves)
-		commonAncestor, err := source1Node.CommonAncestorWith(source2Node)
-		CheckIfError(err)
-		fmt.Println(commonAncestor.FullValueTo(&tree))
-		fmt.Println("===")
-		fmt.Println(source1Node.FullValueTo(commonAncestor))
-		fmt.Println("===")
-		fmt.Println(source2Node.FullValueTo(commonAncestor))
-		fmt.Println("===")
-
-		commonAncestor, err = source1Node.CommonAncestorWith(source3Node)
-		CheckIfError(err)
-		fmt.Println(&commonAncestor, &tree)
-
-		// fmt.Println(tree.Leaves[c.URL].FullValue())
-
-		sc1, err := tree.SimilarityScore(source1Node, source2Node)
-		CheckIfError(err)
-		sc2, err := tree.SimilarityScore(source1Node, source3Node)
-		CheckIfError(err)
-		fmt.Printf("Fossify %X\n", sc1)
-		fmt.Printf("unrelated %X\n", sc2)
+		for _, str := range leafFamilies {
+			fmt.Println(str)
+		}
 
 		// sanity check with prefix lengths
 
