@@ -178,6 +178,9 @@ func lineageIDFromGitClone(repourl string, tempdir string, prefixLength uint8) s
 	if errors.Is(err, git.ErrRepositoryAlreadyExists) {
 		repo, err = git.PlainOpen(tempdir)
 		CheckIfError(err)
+	} else if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	lineageId, err := getLineageIDFromRepo(repo, prefixLength)
