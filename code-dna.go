@@ -163,6 +163,9 @@ func lineageIDFromGitHub(repourl string, prefixLength uint8) string {
 }
 
 func lineageIDFromGitClone(repourl string, tempdir string, prefixLength uint8) string {
+	if !strings.HasPrefix(repourl, "http") {
+		repourl = "https://" + repourl
+	}
 	repo, err := git.PlainClone(tempdir, true, &git.CloneOptions{
 		URL:               repourl,
 		RecurseSubmodules: 0,
