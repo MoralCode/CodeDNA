@@ -211,10 +211,18 @@ func importManyRepos(filename string) ([]RepoImport, error) {
 	var repos []RepoImport
 
 	for _, element := range data {
-		repos = append(repos, RepoImport{
+
+		new := RepoImport{
 			RepoSource: element[0],
-			Nickname:   strings.TrimSpace(element[1]),
-		})
+		}
+
+		if len(element) > 1 {
+			new.Nickname = strings.TrimSpace(element[1])
+		} else {
+			new.Nickname = element[0]
+		}
+
+		repos = append(repos, new)
 	}
 	return repos, nil
 }
