@@ -262,7 +262,7 @@ func analyzeRepo(analysisPath string, prefixLength uint8) (string, string, error
 	return source, lineageID, nil
 }
 
-func bulkCloneTask(id int, tempdir string, data chan RepoImport) {
+func bulkCloneTask(id int, cache *utils.IdentityCache, tempdir string, data chan RepoImport) {
 
 	for repo := range data {
 		owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
@@ -277,6 +277,33 @@ func bulkCloneTask(id int, tempdir string, data chan RepoImport) {
 		err = cloneRepo(repo.RepoSource, cloneDir)
 		if err != nil {
 			fmt.Println(err)
+		}
+
+		gitrepo, err := git.PlainOpen(cloneDir)
+		if err != nil {
+			fmt.Println("open")
+
+			fmt.Println(err)
+			continue
+		}
+
+		lineageID, err := getLineageIDFromRepo(gitrepo, 4)
+		if err != nil {
+			fmt.Println("get id")
+
+			fmt.Println(err)
+			continue
+		}
+
+		if !cache.Has(repo.RepoSource) {
+			newValue := utils.IdentityValue{
+				URL:       repo.RepoSource,
+				LineageID: lineageID,
+			}
+			if repo.Nickname != "" {
+				newValue.Nickname = repo.Nickname
+			}
+			cache.Add(newValue)
 		}
 	}
 }
@@ -414,42 +441,6 @@ func main() {
 
 		}
 
-		fmt.Println("Beginning Analysis of", totalRepos, "repositories")
-		processedRepos := 0
-
-		for _, repo := range repos {
-			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
-			cloneDir := tempdir + "/" + owner + "_" + repoName
-
-			// lineageID := lineageIDFromGitClone(repo.RepoSource, cloneDir, 4)
-			gitrepo, err := git.PlainOpen(cloneDir)
-			if err != nil {
-				fmt.Println("open")
-
-				fmt.Println(err)
-				continue
-			}
-
-			lineageID, err := getLineageIDFromRepo(gitrepo, 4)
-			if err != nil {
-				fmt.Println("get id")
-
-				fmt.Println(err)
-				continue
-			}
-
-			if !cache.Has(repo.RepoSource) {
-				newValue := utils.IdentityValue{
-					URL:       repo.RepoSource,
-					LineageID: lineageID,
-				}
-				if repo.Nickname != "" {
-					newValue.Nickname = repo.Nickname
-				}
-				cache.Add(newValue)
-			}
-			processedRepos += 1
-		}
 	}
 
 	if opts.Export.Enabled {
