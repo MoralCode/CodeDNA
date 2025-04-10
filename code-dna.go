@@ -392,6 +392,14 @@ func main() {
 		totalRepos := len(repos)
 		fmt.Println("Beginning Cloning of", totalRepos, "repositories")
 
+		// Creating a channel
+		channel := make(chan RepoImport)
+
+		// Creating 5 workers to execute the task
+		for i := 0; i < 10; i++ {
+			go bulkCloneTask(i, &cache, tempdir, channel)
+		}
+
 		batch := repos[750:900]
 
 		for _, repo := range batch {
@@ -401,7 +409,7 @@ func main() {
 				continue
 			}
 
-			// channel <- repo
+			channel <- repo
 			// processedRepos += 1
 
 		}
