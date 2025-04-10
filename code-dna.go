@@ -162,11 +162,11 @@ func lineageIDFromGitHub(repourl string, prefixLength uint8) string {
 	return lineageID.String()
 }
 
-func lineageIDFromGitClone(repourl string, tempdir string, prefixLength uint8) string {
+func cloneRepo(repourl string, into string) error {
 	if !strings.HasPrefix(repourl, "http") {
 		repourl = "https://" + repourl
 	}
-	repo, err := git.PlainClone(tempdir, true, &git.CloneOptions{
+	_, err := git.PlainClone(into, true, &git.CloneOptions{
 		URL:               repourl,
 		RecurseSubmodules: 0,
 		// Differently than the git CLI, by default go-git downloads
@@ -178,13 +178,13 @@ func lineageIDFromGitClone(repourl string, tempdir string, prefixLength uint8) s
 		// to better align the output when compared with the git CLI.
 		Progress: os.Stdout,
 	})
-	if errors.Is(err, git.ErrRepositoryAlreadyExists) {
-		repo, err = git.PlainOpen(tempdir)
-		CheckIfError(err)
-	} else if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	return err
+}
+
+func lineageIDFromGitClone(repourl string, tempdir string, prefixLength uint8) string {
+	err := cloneRepo(repourl, tempdir)
+	repo, err := git.PlainOpen(tempdir)
+	CheckIfError(err)
 
 	lineageId, err := getLineageIDFromRepo(repo, prefixLength)
 	CheckIfError(err)
