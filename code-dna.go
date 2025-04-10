@@ -392,7 +392,9 @@ func main() {
 		totalRepos := len(repos)
 		fmt.Println("Beginning Cloning of", totalRepos, "repositories")
 
-		for _, repo := range repos[:500] {
+		batch := repos[750:900]
+
+		for _, repo := range batch {
 			if !opts.Import.CloneExisting && cache.Has(repo.RepoSource) {
 				fmt.Println("\t Source exists in cache, skipping")
 				// processedRepos += 1
