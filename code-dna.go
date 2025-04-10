@@ -398,32 +398,6 @@ func main() {
 				// processedRepos += 1
 				continue
 			}
-			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
-			cloneDir := tempdir + "/" + owner + "_" + repoName
-
-			if e, err := exists(cloneDir); err != nil && e {
-				fmt.Println("\t Source already cloned, analyzing")
-				// owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
-				// cloneDir := tempdir + "/" + owner + "_" + repoName
-
-				gitrepo, err := git.PlainOpen(cloneDir)
-				CheckIfError(err)
-
-				lineageID, err := getLineageIDFromRepo(gitrepo, 4)
-				CheckIfError(err)
-
-				if !cache.Has(repo.RepoSource) {
-					newValue := utils.IdentityValue{
-						URL:       repo.RepoSource,
-						LineageID: lineageID,
-					}
-					if repo.Nickname != "" {
-						newValue.Nickname = repo.Nickname
-					}
-					cache.Add(newValue)
-				}
-				continue
-			}
 
 			// channel <- repo
 			// processedRepos += 1
