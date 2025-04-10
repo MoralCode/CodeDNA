@@ -262,6 +262,25 @@ func analyzeRepo(analysisPath string, prefixLength uint8) (string, string, error
 	return source, lineageID, nil
 }
 
+func bulkCloneTask(id int, tempdir string, data chan RepoImport) {
+
+	for repo := range data {
+		owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
+		fmt.Println("Importing", repoName, "from", owner, "as \""+repo.Nickname+"\"")
+		cloneDir := tempdir + "/" + owner + "_" + repoName
+
+		err := os.MkdirAll(cloneDir, 0755)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		err = cloneRepo(repo.RepoSource, cloneDir)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
 // https://github.com/jessevdk/go-flags/issues/405
 // https://github.com/jessevdk/go-flags/issues/387
 // I think this arg parsing lib is abandoned.....
@@ -370,20 +389,70 @@ func main() {
 
 		tempdir := "./repositories"
 
-		for _, repo := range repos {
-			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
-			fmt.Println("Importing", repoName, "from", owner, "as \""+repo.Nickname+"\"")
+		totalRepos := len(repos)
+		fmt.Println("Beginning Cloning of", totalRepos, "repositories")
 
+		for _, repo := range repos[:500] {
 			if !opts.Import.CloneExisting && cache.Has(repo.RepoSource) {
 				fmt.Println("\t Source exists in cache, skipping")
+				// processedRepos += 1
+				continue
+			}
+			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
+			cloneDir := tempdir + "/" + owner + "_" + repoName
+
+			if e, err := exists(cloneDir); err != nil && e {
+				fmt.Println("\t Source already cloned, analyzing")
+				// owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
+				// cloneDir := tempdir + "/" + owner + "_" + repoName
+
+				gitrepo, err := git.PlainOpen(cloneDir)
+				CheckIfError(err)
+
+				lineageID, err := getLineageIDFromRepo(gitrepo, 4)
+				CheckIfError(err)
+
+				if !cache.Has(repo.RepoSource) {
+					newValue := utils.IdentityValue{
+						URL:       repo.RepoSource,
+						LineageID: lineageID,
+					}
+					if repo.Nickname != "" {
+						newValue.Nickname = repo.Nickname
+					}
+					cache.Add(newValue)
+				}
 				continue
 			}
 
-			cloneDir := tempdir + "/" + owner + "_" + repoName
-			err := os.MkdirAll(cloneDir, 0755)
-			CheckIfError(err)
+			// channel <- repo
+			// processedRepos += 1
 
-			lineageID := lineageIDFromGitClone(repo.RepoSource, cloneDir, 4)
+		}
+
+		fmt.Println("Beginning Analysis of", totalRepos, "repositories")
+		processedRepos := 0
+
+		for _, repo := range repos {
+			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
+			cloneDir := tempdir + "/" + owner + "_" + repoName
+
+			// lineageID := lineageIDFromGitClone(repo.RepoSource, cloneDir, 4)
+			gitrepo, err := git.PlainOpen(cloneDir)
+			if err != nil {
+				fmt.Println("open")
+
+				fmt.Println(err)
+				continue
+			}
+
+			lineageID, err := getLineageIDFromRepo(gitrepo, 4)
+			if err != nil {
+				fmt.Println("get id")
+
+				fmt.Println(err)
+				continue
+			}
 
 			if !cache.Has(repo.RepoSource) {
 				newValue := utils.IdentityValue{
@@ -395,6 +464,7 @@ func main() {
 				}
 				cache.Add(newValue)
 			}
+			processedRepos += 1
 		}
 	}
 
