@@ -12,6 +12,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/jessevdk/go-flags"
 
@@ -303,7 +304,21 @@ func bulkCloneTask(id int, cache *utils.IdentityCache, tempdir string, data chan
 			if repo.Nickname != "" {
 				newValue.Nickname = repo.Nickname
 			}
-			cache.Add(newValue)
+			err := cache.Add(newValue)
+			if err != nil {
+				fmt.Println("add to cache")
+				fmt.Println(err)
+				// errors <- err
+				continue
+			} else {
+				err = os.RemoveAll(cloneDir)
+				if err != nil {
+					fmt.Println("cleanup")
+					fmt.Println(err)
+					// errors <- err
+					continue
+				}
+			}
 		}
 	}
 }
@@ -421,9 +436,12 @@ func main() {
 
 		// Creating a channel
 		channel := make(chan RepoImport)
+		var wg sync.WaitGroup
 
-		// Creating 5 workers to execute the task
-		for i := 0; i < 10; i++ {
+		// Creating workers to execute the task
+		for i := 0; i < 8; i++ {
+			fmt.Println("Main: Starting worker", i)
+			wg.Add(1)
 			go bulkCloneTask(i, &cache, tempdir, channel)
 		}
 
