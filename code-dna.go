@@ -452,8 +452,6 @@ func main() {
 			}
 
 			channel <- repo
-			// processedRepos += 1
-
 		}
 
 	}
