@@ -421,6 +421,11 @@ type SimilarityCommand struct {
 	Enabled bool `hidden:"true" no-ini:"true"`
 }
 
+type BenchmarkCommand struct {
+	Enabled       bool   `hidden:"true" no-ini:"true"`
+	BenchmarkType string `long:"test" choice:"tree" choice:"identifier" description:"the benchmark name to run"`
+}
+
 type MainCmd struct {
 	Verbosity  []bool            `short:"v" long:"verbose" description:"Show verbose debug information"`
 	CachePath  string            `long:"cachepath" default:"cache.sqlite" description:"The path to the cache database to use"`
@@ -428,6 +433,7 @@ type MainCmd struct {
 	Export     Export            `command:"export" description:"export the database to CSV"`
 	Import     ImportCommand     `command:"import" description:"import from CSV"`
 	Similarity SimilarityCommand `command:"similarity" description:"run repo similarity report"`
+	Benchmark  BenchmarkCommand  `command:"benchmark" description:"run a benchmark"`
 }
 
 // Detect when the subcommand is used.
@@ -447,6 +453,10 @@ func (c *SimilarityCommand) Execute(args []string) error {
 	c.Enabled = true
 	return nil
 }
+func (c *BenchmarkCommand) Execute(args []string) error {
+	c.Enabled = true
+	return nil
+}
 
 func main() {
 	var opts MainCmd
@@ -460,6 +470,8 @@ func main() {
 	cache := utils.IdentityCache{
 		Filename: opts.CachePath,
 	}
+
+	repositoryStorageDir := "./repositories"
 
 	if len(opts.Verbosity) >= 1 {
 		fmt.Printf("%+v\n", opts)
@@ -573,6 +585,10 @@ func main() {
 		}
 
 		// sanity check with prefix lengths
+
+	}
+
+	if opts.Benchmark.Enabled {
 
 	}
 
