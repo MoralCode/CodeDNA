@@ -262,7 +262,7 @@ func analyzeRepo(analysisPath string, prefixLength uint8) (string, string, error
 	return source, lineageID, nil
 }
 
-func bulkCloneTask(id int, bool cleanup, cache *utils.IdentityCache, tempdir string, data chan RepoImport) {
+func bulkCloneTask(id int, cleanup bool, cache *utils.IdentityCache, tempdir string, data chan RepoImport) {
 
 	for repo := range data {
 		owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
