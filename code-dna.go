@@ -12,7 +12,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/jessevdk/go-flags"
 
@@ -436,12 +435,10 @@ func main() {
 
 		// Creating a channel
 		channel := make(chan RepoImport)
-		var wg sync.WaitGroup
 
 		// Creating workers to execute the task
 		for i := 0; i < 8; i++ {
 			fmt.Println("Main: Starting worker", i)
-			wg.Add(1)
 			go bulkCloneTask(i, &cache, tempdir, channel)
 		}
 
