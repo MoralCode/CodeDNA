@@ -12,6 +12,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jessevdk/go-flags"
 
@@ -348,6 +349,48 @@ func bulkCloneTask(id int, cleanup bool, cache *utils.IdentityCache, tempdir str
 			}
 		}
 	}
+}
+
+func writeResults(data [][]string, headers []string, destination string) error {
+
+	exists, err := exists(destination)
+	if err != nil {
+		fmt.Errorf("an error checking for file existence: %w", err)
+	}
+	if exists {
+		extension_location := strings.LastIndex(destination, ".")
+		extension := destination[extension_location:]
+		name := destination[:extension_location]
+		name += time.Now().Format(time.RFC3339)
+		fmt.Println("Destination file " + destination + " exists. Using " + name + extension)
+		destination = name + extension
+
+	}
+
+	csvFile, err := os.Create(destination)
+	if err != nil {
+		fmt.Errorf("an error occurred creating a file: %w", err)
+	}
+	defer csvFile.Close()
+
+	csvWriter := csv.NewWriter(csvFile)
+	err = csvWriter.Write(headers)
+	if err != nil {
+		fmt.Errorf("an error occurred during a header write operation: %w", err)
+	}
+	for _, v := range data {
+		err = csvWriter.Write(v)
+		if err != nil {
+			fmt.Errorf("an error occurred during a write operation: %w", err)
+		}
+	}
+
+	csvWriter.Flush()
+	err = csvWriter.Error()
+	if err != nil {
+		fmt.Errorf("an error occurred during the flush: %w", err)
+	}
+	return nil
 }
 
 // https://github.com/jessevdk/go-flags/issues/405
