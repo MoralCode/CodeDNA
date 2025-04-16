@@ -297,6 +297,20 @@ func (tree *SimilarityTreeNode) DistanceTo(node *SimilarityTreeNode) int {
 	return tree.Parent.DistanceTo(node) + 1
 }
 
+// Get the "distance" of this node to the root
+func (tree *SimilarityTreeNode) NodeCount() int {
+	// base case: no children
+	if len(tree.children) == 0 {
+		return 1 // self
+	}
+
+	totalSubNodes := 0
+	for _, n := range tree.Children() {
+		totalSubNodes += n.NodeCount()
+	}
+	return totalSubNodes + 1
+}
+
 func (tree *SimilarityTreeNode) Siblings() []*SimilarityTreeNode {
 	if tree.Parent == nil {
 		return []*SimilarityTreeNode{}

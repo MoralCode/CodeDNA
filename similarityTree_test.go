@@ -511,6 +511,60 @@ func TestSiblingDetection(t *testing.T) {
 
 }
 
+func TestNodeCount(t *testing.T) {
+	childNode2 := SimilarityTreeNode{
+		Value:    "ijkl",
+		children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	childNode := SimilarityTreeNode{
+		Value:    "efgh",
+		children: map[rune]*SimilarityTreeNode{rune('i'): &childNode2},
+		Parent:   nil,
+	}
+
+	childNodeA := SimilarityTreeNode{
+		Value:    "wxyz",
+		children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	nullNode := SimilarityTreeNode{
+		Value:    "",
+		children: map[rune]*SimilarityTreeNode{},
+		Parent:   nil,
+	}
+
+	rootNode := SimilarityTreeNode{
+		Value: "abcd",
+		children: map[rune]*SimilarityTreeNode{
+			rune(0):   &nullNode,
+			rune('e'): &childNode,
+			rune('w'): &childNodeA,
+		},
+		Parent: nil,
+	}
+
+	childNode.Parent = &rootNode
+	childNodeA.Parent = &rootNode
+	childNode2.Parent = &childNode
+	nullNode.Parent = &rootNode
+
+	if l := childNodeA.NodeCount(); l != 1 {
+		t.Errorf(`NodeCount() returned incorrect number of siblings for child A, expected %d, got %d`, 1, l)
+	}
+
+	if l := childNode.NodeCount(); l != 2 {
+		t.Errorf(`NodeCount() returned incorrect number of siblings for childnode, expected %d, got %d`, 2, l)
+	}
+
+	if l := rootNode.NodeCount(); l != 4 {
+		t.Errorf(`NodeCount() returned incorrect number of siblings for rootNode, expected %d, got %d`, 4, l)
+	}
+
+}
+
 func TestLeafMaintainance(t *testing.T) {
 
 	childNode2 := SimilarityTreeNode{
