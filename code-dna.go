@@ -343,6 +343,7 @@ type ImportCommand struct {
 	Enabled       bool   `hidden:"true" no-ini:"true"`
 	Path          string `long:"path" description:"The path to import from" required:"true"`
 	CloneExisting bool   `long:"clone-existing" description:"whether or not to clone a repository if it exists in the cache"`
+	PreserveClone bool   `long:"preserve-clone" description:"whether to preserve cloned repositories after they have been identified and cached"`
 }
 
 type SimilarityCommand struct {
@@ -436,7 +437,7 @@ func main() {
 		// Creating a channel
 		channel := make(chan RepoImport)
 
-		cleanupRepos := false
+		cleanupRepos := !opts.Import.PreserveClone
 
 		// Creating workers to execute the task
 		for i := 0; i < 8; i++ {
