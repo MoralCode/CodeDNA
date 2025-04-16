@@ -272,26 +272,27 @@ func bulkCloneTask(id int, cache *utils.IdentityCache, tempdir string, data chan
 
 		err := os.MkdirAll(cloneDir, 0755)
 		if err != nil {
+			fmt.Println("error in mkdir:")
 			fmt.Println(err)
-			os.Exit(1)
+			continue
 		}
 		err = cloneRepo(repo.RepoSource, cloneDir)
 		if err != nil {
+			fmt.Println("error in clone:")
 			fmt.Println(err)
+			continue
 		}
 
 		gitrepo, err := git.PlainOpen(cloneDir)
 		if err != nil {
-			fmt.Println("open")
-
+			fmt.Println("error opening repo")
 			fmt.Println(err)
 			continue
 		}
 
 		lineageID, err := getLineageIDFromRepo(gitrepo, 4)
 		if err != nil {
-			fmt.Println("get id")
-
+			fmt.Println("error getting id")
 			fmt.Println(err)
 			continue
 		}
@@ -306,14 +307,13 @@ func bulkCloneTask(id int, cache *utils.IdentityCache, tempdir string, data chan
 			}
 			err := cache.Add(newValue)
 			if err != nil {
-				fmt.Println("add to cache")
+				fmt.Println("error addding to cache")
 				fmt.Println(err)
-				// errors <- err
 				continue
 			} else {
 				err = os.RemoveAll(cloneDir)
 				if err != nil {
-					fmt.Println("cleanup")
+					fmt.Println("cleanup error")
 					fmt.Println(err)
 					// errors <- err
 					continue
