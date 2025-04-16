@@ -262,7 +262,7 @@ func analyzeRepo(analysisPath string, prefixLength uint8) (string, string, error
 	return source, lineageID, nil
 }
 
-func bulkCloneTask(id int, cache *utils.IdentityCache, tempdir string, data chan RepoImport) {
+func bulkCloneTask(id int, bool cleanup, cache *utils.IdentityCache, tempdir string, data chan RepoImport) {
 
 	for repo := range data {
 		owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
@@ -309,7 +309,7 @@ func bulkCloneTask(id int, cache *utils.IdentityCache, tempdir string, data chan
 				fmt.Println("error addding to cache")
 				fmt.Println(err)
 				continue
-			} else {
+			} else if cleanup {
 				err = os.RemoveAll(cloneDir)
 				if err != nil {
 					fmt.Println("cleanup error")
@@ -436,10 +436,12 @@ func main() {
 		// Creating a channel
 		channel := make(chan RepoImport)
 
+		cleanupRepos := false
+
 		// Creating workers to execute the task
 		for i := 0; i < 8; i++ {
 			fmt.Println("Main: Starting worker", i)
-			go bulkCloneTask(i, &cache, tempdir, channel)
+			go bulkCloneTask(i, cleanupRepos, &cache, tempdir, channel)
 		}
 
 		batch := repos[750:900]
