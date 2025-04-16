@@ -590,6 +590,14 @@ func main() {
 
 	if opts.Benchmark.Enabled {
 
+		if opts.Benchmark.BenchmarkType == "tree" {
+			// take subsequently more items from the cache and load them into the tree, measuring the time to do so
+		} else if opts.Benchmark.BenchmarkType == "identifier" {
+			// loop through all repos in the repositories folder, calculating their ID
+		} else {
+			fmt.Println("No valid benchmark selected")
+			return
+		}
 	}
 
 }
