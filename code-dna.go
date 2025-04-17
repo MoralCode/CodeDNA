@@ -18,6 +18,7 @@ import (
 	"github.com/MoralCode/CodeDNA/utils"
 	"github.com/go-git/go-git/v5"
 	. "github.com/go-git/go-git/v5/_examples"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/google/go-github/v69/github"
 )
@@ -33,9 +34,21 @@ func getOriginUrlFromRepo(repo *git.Repository) (string, error) {
 
 func getLineageIDFromRepo(repo *git.Repository, prefixLength uint8) (string, error) {
 	// ... retrieving the HEAD reference
+	refs := []string{"refs/heads/master", "refs/heads/main"}
 	ref, err := repo.Head()
 	if err != nil {
-		return "", err
+		for _, r := range refs {
+			ref, err = repo.Reference(plumbing.ReferenceName(r), true)
+			// fmt.Println(ref)
+			if err == nil {
+				fmt.Println("found")
+				fmt.Println(ref)
+				break
+			}
+		}
+		if err != nil {
+			return "", err
+		}
 	}
 
 	// ... retrieves the commit history

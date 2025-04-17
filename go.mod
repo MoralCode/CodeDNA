@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.23.6
 
 require (
+	github.com/go-git/go-git v4.7.0+incompatible
 	github.com/go-git/go-git/v5 v5.14.0
 	github.com/google/go-github/v69 v69.2.0
 	github.com/jessevdk/go-flags v1.6.1
