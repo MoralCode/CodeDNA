@@ -301,6 +301,11 @@ func bulkCloneTask(id int, cleanup bool, cache *utils.IdentityCache, tempdir str
 		if err != nil {
 			fmt.Println("error in clone:")
 			fmt.Println(err)
+			err = os.RemoveAll(cloneDir)
+			if err != nil {
+				fmt.Println("error during cleanup of error")
+				fmt.Println(err)
+			}
 			continue
 		}
 
