@@ -613,7 +613,10 @@ func main() {
 					singleStart := time.Now()
 					commits := 0
 					repo, err := git.PlainOpen(repoPath)
-					CheckIfError(err)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
 					lID, err := getLineageIDFromRepo(repo, 4)
 					if err != nil {
 						fmt.Println(err)
