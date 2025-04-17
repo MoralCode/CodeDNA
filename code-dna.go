@@ -590,10 +590,49 @@ func main() {
 
 	if opts.Benchmark.Enabled {
 
+
+		benchResults := [][]string{}
+
+		benchResultsFile := opts.Benchmark.BenchmarkType + ".csv"
+
 		if opts.Benchmark.BenchmarkType == "tree" {
 			// take subsequently more items from the cache and load them into the tree, measuring the time to do so
 		} else if opts.Benchmark.BenchmarkType == "identifier" {
 			// loop through all repos in the repositories folder, calculating their ID
+			benchHeaders := []string{"repo", "duration", "commit_count"}
+
+			// start timer
+
+			globalStart := time.Now()
+
+			items, _ := os.ReadDir(repositoryStorageDir)
+			for _, item := range items {
+				if item.IsDir() {
+					// start timer
+					singleStart := time.Now()
+					commits := 0
+					repo, err := git.PlainOpen(item.Name())
+					CheckIfError(err)
+					lID, err := getLineageIDFromRepo(repo, 4)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					} else {
+						commits = len(lID)
+					}
+					// end timer
+					duration := time.Since(singleStart)
+
+					// calculate duration
+					benchResults = append(benchResults, []string{item.Name(), duration.String(), string(commits)})
+				}
+			}
+			// end global timer
+			globalDuration := time.Since(globalStart)
+
+			fmt.Println("benchmark ended after " + globalDuration.String())
+
+			writeResults(benchResults, benchHeaders, benchResultsFile)
 		} else {
 			fmt.Println("No valid benchmark selected")
 			return
