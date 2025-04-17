@@ -608,10 +608,11 @@ func main() {
 			items, _ := os.ReadDir(repositoryStorageDir)
 			for _, item := range items {
 				if item.IsDir() {
+					repoPath := repositoryStorageDir + "/" + item.Name()
 					// start timer
 					singleStart := time.Now()
 					commits := 0
-					repo, err := git.PlainOpen(item.Name())
+					repo, err := git.PlainOpen(repoPath)
 					CheckIfError(err)
 					lID, err := getLineageIDFromRepo(repo, 4)
 					if err != nil {
