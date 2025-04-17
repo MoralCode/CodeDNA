@@ -606,9 +606,11 @@ func main() {
 			globalStart := time.Now()
 
 			items, _ := os.ReadDir(repositoryStorageDir)
+			repoCount := 0
 			for _, item := range items {
 				if item.IsDir() {
 					repoPath := repositoryStorageDir + "/" + item.Name()
+					fmt.Println(repoPath)
 					// start timer
 					singleStart := time.Now()
 					commits := 0
@@ -627,6 +629,7 @@ func main() {
 					// end timer
 					duration := time.Since(singleStart)
 
+					repoCount += 1
 					// calculate duration
 					benchResults = append(benchResults, []string{item.Name(), fmt.Sprint(duration.Microseconds()), fmt.Sprint(commits)})
 				}
@@ -635,6 +638,7 @@ func main() {
 			globalDuration := time.Since(globalStart)
 
 			fmt.Println("benchmark ended after " + globalDuration.String())
+			fmt.Println("total repositories measured " + fmt.Sprint(repoCount))
 
 			writeResults(benchResults, benchHeaders, benchResultsFile)
 		} else {
