@@ -475,7 +475,7 @@ func main() {
 			go bulkCloneTask(i, cleanupRepos, &cache, tempdir, channel)
 		}
 
-		batch := repos[750:900]
+		batch := repos
 
 		for _, repo := range batch {
 			if !opts.Import.CloneExisting && cache.Has(repo.RepoSource) {
