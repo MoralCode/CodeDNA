@@ -514,7 +514,7 @@ func main() {
 		repos, err := importManyRepos(opts.Import.Path)
 		CheckIfError(err)
 
-		tempdir := "./repositories"
+		tempdir := repositoryStorageDir
 
 		totalRepos := len(repos)
 		fmt.Println("Beginning Cloning of", totalRepos, "repositories")
