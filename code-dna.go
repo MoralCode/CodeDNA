@@ -285,71 +285,7 @@ func analyzeRepo(analysisPath string, prefixLength uint8) (string, string, error
 	return source, lineageID, nil
 }
 
-func bulkCloneTask(id int, cleanup bool, cache *utils.IdentityCache, tempdir string, data chan RepoImport) {
 
-	for repo := range data {
-		owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
-		fmt.Println("Importing", repoName, "from", owner, "as \""+repo.Nickname+"\"")
-		cloneDir := tempdir + "/" + owner + "_" + repoName
-
-		err := os.MkdirAll(cloneDir, 0755)
-		if err != nil {
-			fmt.Println("error in mkdir:")
-			fmt.Println(err)
-			continue
-		}
-		err = cloneRepo(repo.RepoSource, cloneDir)
-		if err != nil {
-			fmt.Println("error in clone:")
-			fmt.Println(err)
-			err = os.RemoveAll(cloneDir)
-			if err != nil {
-				fmt.Println("error during cleanup of error")
-				fmt.Println(err)
-			}
-			continue
-		}
-
-		gitrepo, err := git.PlainOpen(cloneDir)
-		if err != nil {
-			fmt.Println("error opening repo")
-			fmt.Println(err)
-			continue
-		}
-
-		lineageID, err := getLineageIDFromRepo(gitrepo, 4)
-		if err != nil {
-			fmt.Println("error getting id")
-			fmt.Println(err)
-			continue
-		}
-
-		if !cache.Has(repo.RepoSource) {
-			newValue := utils.IdentityValue{
-				URL:       repo.RepoSource,
-				LineageID: lineageID,
-			}
-			if repo.Nickname != "" {
-				newValue.Nickname = repo.Nickname
-			}
-			err := cache.Add(newValue)
-			if err != nil {
-				fmt.Println("error addding to cache")
-				fmt.Println(err)
-				continue
-			}
-			if cleanup {
-				err = os.RemoveAll(cloneDir)
-				if err != nil {
-					fmt.Println("cleanup error")
-					fmt.Println(err)
-					// errors <- err
-					continue
-				}
-			}
-		}
-	}
-}
 
 func writeResults(data [][]string, headers []string, destination string) error {
 
@@ -520,29 +456,79 @@ func main() {
 		fmt.Println("Beginning Cloning of", totalRepos, "repositories")
 
 		// Creating a channel
-		channel := make(chan RepoImport)
 
 		cleanupRepos := !opts.Import.PreserveClone
 
-		// Creating workers to execute the task
-		for i := 0; i < 8; i++ {
-			fmt.Println("Main: Starting worker", i)
-			go bulkCloneTask(i, cleanupRepos, &cache, tempdir, channel)
-		}
 
-		batch := repos
 
-		for _, repo := range batch {
+		for _, repo := range repos {
 			if !opts.Import.CloneExisting && cache.Has(repo.RepoSource) {
 				fmt.Println("\t Source exists in cache, skipping")
 				// processedRepos += 1
 				continue
 			}
 
-			channel <- repo
-		}
+			owner, repoName := repoOwnerAndNameFromURL(repo.RepoSource)
+			fmt.Println("Importing", repoName, "from", owner, "as \""+repo.Nickname+"\"")
+			cloneDir := tempdir + "/" + owner + "_" + repoName
 
-		close(channel)
+			err := os.MkdirAll(cloneDir, 0755)
+			if err != nil {
+				fmt.Println("error in mkdir:")
+				fmt.Println(err)
+				continue
+			}
+			err = cloneRepo(repo.RepoSource, cloneDir)
+			if err != nil {
+				fmt.Println("error in clone:")
+				fmt.Println(err)
+				err = os.RemoveAll(cloneDir)
+				if err != nil {
+					fmt.Println("error during cleanup of error")
+					fmt.Println(err)
+				}
+				continue
+			}
+
+			gitrepo, err := git.PlainOpen(cloneDir)
+			if err != nil {
+				fmt.Println("error opening repo")
+				fmt.Println(err)
+				continue
+			}
+
+			lineageID, err := getLineageIDFromRepo(gitrepo, 4)
+			if err != nil {
+				fmt.Println("error getting id")
+				fmt.Println(err)
+				continue
+			}
+
+			if !cache.Has(repo.RepoSource) {
+				newValue := utils.IdentityValue{
+					URL:       repo.RepoSource,
+					LineageID: lineageID,
+				}
+				if repo.Nickname != "" {
+					newValue.Nickname = repo.Nickname
+				}
+				err := cache.Add(newValue)
+				if err != nil {
+					fmt.Println("error addding to cache")
+					fmt.Println(err)
+					continue
+				}
+				if cleanupRepos {
+					err = os.RemoveAll(cloneDir)
+					if err != nil {
+						fmt.Println("cleanup error")
+						fmt.Println(err)
+						// errors <- err
+						continue
+					}
+				}
+			}
+		}
 	}
 
 	if opts.Export.Enabled {
