@@ -336,7 +336,8 @@ func bulkCloneTask(id int, cleanup bool, cache *utils.IdentityCache, tempdir str
 				fmt.Println("error addding to cache")
 				fmt.Println(err)
 				continue
-			} else if cleanup {
+			}
+			if cleanup {
 				err = os.RemoveAll(cloneDir)
 				if err != nil {
 					fmt.Println("cleanup error")
