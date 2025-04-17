@@ -628,7 +628,7 @@ func main() {
 					duration := time.Since(singleStart)
 
 					// calculate duration
-					benchResults = append(benchResults, []string{item.Name(), duration.String(), string(commits)})
+					benchResults = append(benchResults, []string{item.Name(), duration.String(), fmt.Sprint(commits)})
 				}
 			}
 			// end global timer
