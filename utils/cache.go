@@ -92,7 +92,7 @@ func (cache *IdentityCache) Has(source string) bool {
 		return false
 	}
 	var identity IdentityValue
-	result := cache.db.Take(&identity, "url = ?", source)
+	result := cache.db.Take(&identity, "url LIKE ?", "%"+source)
 	// one of these is printing an error?
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return false
