@@ -12,6 +12,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jessevdk/go-flags"
 
@@ -350,6 +351,48 @@ func bulkCloneTask(id int, cleanup bool, cache *utils.IdentityCache, tempdir str
 	}
 }
 
+func writeResults(data [][]string, headers []string, destination string) error {
+
+	exists, err := exists(destination)
+	if err != nil {
+		fmt.Errorf("an error checking for file existence: %w", err)
+	}
+	if exists {
+		extension_location := strings.LastIndex(destination, ".")
+		extension := destination[extension_location:]
+		name := destination[:extension_location]
+		name += time.Now().Format(time.RFC3339)
+		fmt.Println("Destination file " + destination + " exists. Using " + name + extension)
+		destination = name + extension
+
+	}
+
+	csvFile, err := os.Create(destination)
+	if err != nil {
+		fmt.Errorf("an error occurred creating a file: %w", err)
+	}
+	defer csvFile.Close()
+
+	csvWriter := csv.NewWriter(csvFile)
+	err = csvWriter.Write(headers)
+	if err != nil {
+		fmt.Errorf("an error occurred during a header write operation: %w", err)
+	}
+	for _, v := range data {
+		err = csvWriter.Write(v)
+		if err != nil {
+			fmt.Errorf("an error occurred during a write operation: %w", err)
+		}
+	}
+
+	csvWriter.Flush()
+	err = csvWriter.Error()
+	if err != nil {
+		fmt.Errorf("an error occurred during the flush: %w", err)
+	}
+	return nil
+}
+
 // https://github.com/jessevdk/go-flags/issues/405
 // https://github.com/jessevdk/go-flags/issues/387
 // I think this arg parsing lib is abandoned.....
@@ -378,6 +421,11 @@ type SimilarityCommand struct {
 	Enabled bool `hidden:"true" no-ini:"true"`
 }
 
+type BenchmarkCommand struct {
+	Enabled       bool   `hidden:"true" no-ini:"true"`
+	BenchmarkType string `long:"test" choice:"tree" choice:"identifier" description:"the benchmark name to run"`
+}
+
 type MainCmd struct {
 	Verbosity  []bool            `short:"v" long:"verbose" description:"Show verbose debug information"`
 	CachePath  string            `long:"cachepath" default:"cache.sqlite" description:"The path to the cache database to use"`
@@ -385,6 +433,7 @@ type MainCmd struct {
 	Export     Export            `command:"export" description:"export the database to CSV"`
 	Import     ImportCommand     `command:"import" description:"import from CSV"`
 	Similarity SimilarityCommand `command:"similarity" description:"run repo similarity report"`
+	Benchmark  BenchmarkCommand  `command:"benchmark" description:"run a benchmark"`
 }
 
 // Detect when the subcommand is used.
@@ -404,6 +453,10 @@ func (c *SimilarityCommand) Execute(args []string) error {
 	c.Enabled = true
 	return nil
 }
+func (c *BenchmarkCommand) Execute(args []string) error {
+	c.Enabled = true
+	return nil
+}
 
 func main() {
 	var opts MainCmd
@@ -417,6 +470,8 @@ func main() {
 	cache := utils.IdentityCache{
 		Filename: opts.CachePath,
 	}
+
+	repositoryStorageDir := "./repositories"
 
 	if len(opts.Verbosity) >= 1 {
 		fmt.Printf("%+v\n", opts)
@@ -459,7 +514,7 @@ func main() {
 		repos, err := importManyRepos(opts.Import.Path)
 		CheckIfError(err)
 
-		tempdir := "./repositories"
+		tempdir := repositoryStorageDir
 
 		totalRepos := len(repos)
 		fmt.Println("Beginning Cloning of", totalRepos, "repositories")
@@ -531,6 +586,65 @@ func main() {
 
 		// sanity check with prefix lengths
 
+	}
+
+	if opts.Benchmark.Enabled {
+
+
+		benchResults := [][]string{}
+
+		benchResultsFile := opts.Benchmark.BenchmarkType + ".csv"
+
+		if opts.Benchmark.BenchmarkType == "tree" {
+			// take subsequently more items from the cache and load them into the tree, measuring the time to do so
+		} else if opts.Benchmark.BenchmarkType == "identifier" {
+			// loop through all repos in the repositories folder, calculating their ID
+			benchHeaders := []string{"repo", "duration", "commit_count"}
+
+			// start timer
+
+			globalStart := time.Now()
+
+			items, _ := os.ReadDir(repositoryStorageDir)
+			repoCount := 0
+			for _, item := range items {
+				if item.IsDir() {
+					repoPath := repositoryStorageDir + "/" + item.Name()
+					fmt.Println(repoPath)
+					// start timer
+					singleStart := time.Now()
+					commits := 0
+					repo, err := git.PlainOpen(repoPath)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+					lID, err := getLineageIDFromRepo(repo, 4)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					} else {
+						commits = len(lID)
+					}
+					// end timer
+					duration := time.Since(singleStart)
+
+					repoCount += 1
+					// calculate duration
+					benchResults = append(benchResults, []string{item.Name(), fmt.Sprint(duration.Microseconds()), fmt.Sprint(commits)})
+				}
+			}
+			// end global timer
+			globalDuration := time.Since(globalStart)
+
+			fmt.Println("benchmark ended after " + globalDuration.String())
+			fmt.Println("total repositories measured " + fmt.Sprint(repoCount))
+
+			writeResults(benchResults, benchHeaders, benchResultsFile)
+		} else {
+			fmt.Println("No valid benchmark selected")
+			return
+		}
 	}
 
 }
