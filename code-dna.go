@@ -443,6 +443,8 @@ func main() {
 			}
 			if opts.Analyze.Args.Nickname != "" {
 				newValue.Nickname = opts.Analyze.Args.Nickname
+			} else {
+				newValue.Nickname = source
 			}
 			cache.Add(newValue)
 		}
