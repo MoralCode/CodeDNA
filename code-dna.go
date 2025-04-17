@@ -487,6 +487,7 @@ func main() {
 			channel <- repo
 		}
 
+		close(channel)
 	}
 
 	if opts.Export.Enabled {
