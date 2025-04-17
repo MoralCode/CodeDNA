@@ -597,6 +597,39 @@ func main() {
 
 		if opts.Benchmark.BenchmarkType == "tree" {
 			// take subsequently more items from the cache and load them into the tree, measuring the time to do so
+
+			// loop through all repos in the repositories folder, calculating their ID
+			benchHeaders := []string{"number of items", "duration"}
+			allCache, err := cache.GetAll()
+			if err != nil {
+				fmt.Println(err)
+			}
+			cacheLength := len(allCache)
+
+			// start timer
+			globalStart := time.Now()
+
+			benchTree := NewSimilarityTree()
+			for i := 100; i < cacheLength; i += 100 {
+				singleStart := time.Now()
+				items := allCache[:i]
+
+				for _, item := range items {
+					benchTree.Add(item.Nickname, item.LineageID)
+				}
+
+				// end timer
+				duration := time.Since(singleStart)
+
+				// calculate duration
+				benchResults = append(benchResults, []string{fmt.Sprint(i), fmt.Sprint(duration.Microseconds())})
+			}
+			// end global timer
+			globalDuration := time.Since(globalStart)
+
+			fmt.Println("benchmark ended after " + globalDuration.String())
+
+			writeResults(benchResults, benchHeaders, benchResultsFile)
 		} else if opts.Benchmark.BenchmarkType == "identifier" {
 			// loop through all repos in the repositories folder, calculating their ID
 			benchHeaders := []string{"repo", "duration", "commit_count"}
