@@ -264,12 +264,21 @@ func analyzeRepo(analysisPath string, prefixLength uint8) (string, string, error
 
 		// We instantiate a new repository object from the given path (the .git folder)
 		repo, err := git.PlainOpen(analysisPath)
-		CheckIfError(err)
+		if err != nil {
+			fmt.Println("error in open:")
+			fmt.Println(err)
+		}
 
 		lineageID, err = getLineageIDFromRepo(repo, prefixLength)
-		CheckIfError(err)
+		if err != nil {
+			fmt.Println("error in get id:")
+			fmt.Println(err)
+		}
 		source, err = getOriginUrlFromRepo(repo)
-		CheckIfError(err)
+		if err != nil {
+			fmt.Println("error in get origin:")
+			fmt.Println(err)
+		}
 
 	}
 	return source, lineageID, nil
